@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8">
+    <title>Autograder</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+  </head>
+  <body>
+    <div id="header">
+	<img src="{{ url_for('static', filename='images/logo.png') }}">
+	<h2 id="page-title">Short Answer Grading Assistant</h2>
+    </div>
+    <div class="input_question"> 
+	    <form action="/upload" method="post" enctype="multipart/form-data" >
+	    <p><b>Upload Subject Data</b> </p>
+	    <hr>
+		<p><b>Select Data Directory:</b>&emsp;<input id="picker" type="file" name='data_dir' webkitdirectory multiple=""/>
+		<br><input type='submit' value='upload'>
+	    	</p>
+	    </form>
+    </div>
+   <br/>
+   
+   <fieldset>
+   	<legend><b>Data Statistics</b></legend>
+		{% if upload_status == 'False' %}
+			<p><b>N/A</b></p>
+		{% else %}
+			<p><b>Number of Students:</b> {{ total_students }}</p>
+			<br/>
+			<p><b>Number of Questions:</b> {{ total_questions }}</p>
+		{% endif %}
+   </fieldset>
+   <br/>
+   <form action="/start" method="post">
+	   <div id="navigate">
+	      <button type="submit" class="next_ans">Start Grading</button>
+	   </div>
+   </form>
+  </body>
+</html>

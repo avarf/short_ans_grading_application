@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8">
+    <title>Autograder</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+  </head>
+  <body>
+    <div id="header">
+	<img src="{{ url_for('static', filename='images/logo.png') }}">
+	<h2 id="page-title">Short Answer Grading Assistant</h2>
+    </div>
+
+    <form action="/new" method="post">
+     	<div class="input_question"> 
+	<p><b>Select question:</b>&emsp;<select id="selection" name="question">
+		{% if selected == 'False' %}
+			<option value="{{qlist[0]}}" selected>{{qlist[0]}}</option>
+			{% for q in qlist[1:] %}
+	    			<option value= "{{q}}">{{q}}</option>"
+	    		{% endfor %}
+		{% else %}
+			{% for q in qlist %}
+				{% if q == ques %}
+					<option value= "{{q}}" selected>{{q}}</option>"
+				{% else %}
+					<option value= "{{q}}">{{q}}</option>"
+				{% endif %}
+			{% endfor %}
+		{% endif %}
+	    </select>
+	<br>
+  	    <button class="select_q" type="submit">Go</button>
+   	</div>
+    </form>
+    <div class="groove"> 
+	<p><b>Q:</b> {{ question }}</p>
+	<p><b>Model Answer:</b> {{ model_ans }}</p>
+
+   </div>
+   <br>
+    <fieldset>
+  	<legend><b>Grading</b></legend>
+	<p><b>Student Answer:</b> {{ html_out }}</p>
+    {% if human_label %}
+	<p><b>Assigned Grade:  {{ pred }}</b></p>
+    {% else %}
+	<p><b>System Predicted Grade:  {{ pred }}</b></p>
+    {% endif %}
+   </fieldset>
+
+   <form action="/feedback" method="post">
+	   <fieldset>
+	  	<legend><b>Instructor Feedback</b></legend>
+		<p>
+	      	    <label for="grade">
+			<span>Do you agree with the grade(y/n)?:</span>
+			<strong><abbr title="required">*</abbr></strong>
+	      	    </label>
+		{% if human_label %}
+			&emsp;&nbsp;&nbsp;&nbsp;<em><b>{{ human_label }}</b></em>
+		{% else %}
+	       		&emsp;&nbsp;&nbsp;&nbsp;<input type="radio" name="pred" value="yes">yes
+	       		&emsp;&emsp;&nbsp;&nbsp;&nbsp;<input type="radio" name="pred" value="no">no
+    		{% endif %}
+	       </p>
+
+		<p>
+	      	    <label for="grade">
+			<span>Enter positive phrases (green):</span>
+			<strong><abbr title="required">*</abbr></strong>
+			<em><br/>(comma separated, max 3-word each)&emsp;</em>
+	      	    </label>
+		{% if feedback_correct %}
+			<em><b>{{ feedback_correct }}</b></em>
+		{% else %}
+	       		<input type="text" name="positive" value="{{ positive }}">
+    		{% endif %}
+	       </p>
+
+		<p>
+	      	    <label for="grade">
+			<span>Enter negative phrases (red):</span>
+			<strong><abbr title="required">*</abbr></strong>
+			<em><br/>(comma separated, max 3-word each)&emsp;</em>
+	      	    </label>
+		{% if feedback_incorrect %}
+			<em><b>{{ feedback_incorrect }}</b></em>
+		{% else %}
+	       		<input type="text" name="negative" value="{{ negative }}">
+    		{% endif %}
+	       </p>
+		{% if feedback == 'False' %}
+			<div id="wrapper">
+		    	    <button type="submit" class="feedback">Submit Feedback</button>
+			</div>
+		{% endif %}
+	   </fieldset>
+   </form>
+   <form action="/next" method="post">
+	{% if end == 'End' %}
+	   <div id="wrapper">
+	      <em><b>{{ end }}</b></em>
+	   </div>
+	{% else %}
+	   <div id="navigate">
+	      <button type="submit" class="next_ans">Next answer</button>
+	   </div>
+    	{% endif %}
+   </form>
+  </body>
+</html>

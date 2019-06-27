@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8">
+    <title>Autograder</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+  </head>
+  <body>
+    <div id="header">
+	<img src="{{ url_for('static', filename='images/logo.png') }}">
+	<h2 id="page-title">Short Answer Grading Assistant</h2>
+    </div>
+    <div class="input_question"> 
+    <form action="/new" method="post">
+	<p><b>Select question:</b>&emsp;<select id="selection" name="question">
+		{% if selected == 'False' %}
+			<option value="{{qlist[0]}}" selected>{{qlist[0]}}</option>
+			{% for q in qlist[1:] %}
+	    			<option value= "{{q}}">{{q}}</option>"
+	    		{% endfor %}
+		{% else %}
+			{% for q in qlist %}
+				{% if q == ques %}
+					<option value= "{{q}}" selected>{{q}}</option>"
+				{% else %}
+					<option value= "{{q}}">{{q}}</option>"
+				{% endif %}
+			{% endfor %}
+		{% endif %}
+	    </select>
+	<br>
+  	    <button class="select_q" type="submit">Go</button>
+    </form>
+   </div>
+    <div class="groove"> 
+	<p><b>Q:</b> {{ question }}</p>
+	<p><b>Model Answer:</b> {{ model_ans }}</p>
+
+   </div>
+   <br>
+    <form action="/grading" method="post">
+	    <fieldset>
+	  	<legend><b>Grading</b></legend>
+		<p><b>Student Answer:</b> {{ ans }}</p>
+		<p><b>System Predicted Grade:  ...</b></p>
+		<p><b>Manual Grade:</b></p>
+		<ul>
+		  <li>
+		    <label for="grade_1">
+		      <input type="radio" id="Correct" name="grade" value="Correct" >
+		      Correct
+		    </label>
+		  </li>
+		  <li>
+		    <label for="grade_2">
+		      <input type="radio" id="Incorrect" name="grade" value="Incorrect">
+		      Incorrect
+		    </label>
+		  </li>
+	      </ul>
+	   <div  id="next_answer">
+		<button type="submit" class="next_ans">Next answer</button>
+	   </div>
+	   </fieldset>
+	
+   </form>
+   <fieldset>
+  	<legend><b>Instructor Feedback</b></legend>
+	<p><b>N/A</b></p>
+   </fieldset>
+
+   <br/>
+  </body>
+</html>

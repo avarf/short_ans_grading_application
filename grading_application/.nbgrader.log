@@ -1,0 +1,62 @@
+[NotebookApp | WARNING] No nbgrader_config.py file found (rerun with --debug to see where nbgrader is looking)
+[NotebookApp | INFO] Loading the validate_assignment nbgrader serverextension
+[NotebookApp | INFO] Serving notebooks from local directory: /home/ravikiran/Documents/H-BRS/gui/application
+[NotebookApp | INFO] 0 active kernels 
+[NotebookApp | INFO] The Jupyter Notebook is running at: http://localhost:8888/?token=0ffba633161f3c5328a500d42a157f7dfde4205cf0fc8d00
+[NotebookApp | INFO] Use Control-C to stop this server and shut down all kernels (twice to skip confirmation).
+[NotebookApp | CRITICAL] 
+    
+    Copy/paste this URL into your browser when you connect for the first time,
+    to login with a token:
+        http://localhost:8888/?token=0ffba633161f3c5328a500d42a157f7dfde4205cf0fc8d00
+[NotebookApp | INFO] Accepting one-time-token-authenticated connection from 127.0.0.1
+[NotebookApp | INFO] Kernel started: e1a2695c-04ac-4c9b-9c45-5dea77d59841
+[NotebookApp | WARNING] 404 GET /nbextensions/widgets/notebook/js/extension.js?v=20190603083228 (127.0.0.1) 327.43ms referer=http://localhost:8888/notebooks/jupyter_to_csv.ipynb
+[NotebookApp | INFO] Saving file at /jupyter_to_csv.ipynb
+[NotebookApp | INFO] Saving file at /jupyter_to_csv.ipynb
+[NotebookApp | INFO] interrupted
+[NotebookApp | CRITICAL] Shutdown confirmed
+[NotebookApp | INFO] Shutting down kernels
+[NotebookApp | INFO] Kernel shutdown: e1a2695c-04ac-4c9b-9c45-5dea77d59841
+[NotebookApp | WARNING] No nbgrader_config.py file found (rerun with --debug to see where nbgrader is looking)
+[NotebookApp | INFO] Loading the validate_assignment nbgrader serverextension
+[NotebookApp | INFO] Serving notebooks from local directory: /home/ravikiran/Documents/H-BRS/gui/application
+[NotebookApp | INFO] 0 active kernels 
+[NotebookApp | INFO] The Jupyter Notebook is running at: http://localhost:8888/?token=c93d6bbefbfc78fee6c9988603b84961546c043940a82a56
+[NotebookApp | INFO] Use Control-C to stop this server and shut down all kernels (twice to skip confirmation).
+[NotebookApp | CRITICAL] 
+    
+    Copy/paste this URL into your browser when you connect for the first time,
+    to login with a token:
+        http://localhost:8888/?token=c93d6bbefbfc78fee6c9988603b84961546c043940a82a56
+[NotebookApp | INFO] Accepting one-time-token-authenticated connection from 127.0.0.1
+[NotebookApp | INFO] Kernel started: 2bbaeabb-3a62-407d-adf5-366bef9054ea
+[NotebookApp | WARNING] 404 GET /nbextensions/widgets/notebook/js/extension.js?v=20190603090205 (127.0.0.1) 253.37ms referer=http://localhost:8888/notebooks/jupyter_to_csv.ipynb
+[NotebookApp | INFO] Kernel restarted: 2bbaeabb-3a62-407d-adf5-366bef9054ea
+[NotebookApp | INFO] Kernel restarted: 2bbaeabb-3a62-407d-adf5-366bef9054ea
+[NotebookApp | INFO] Kernel restarted: 2bbaeabb-3a62-407d-adf5-366bef9054ea
+[NotebookApp | WARNING] Replacing stale connection: 2bbaeabb-3a62-407d-adf5-366bef9054ea:AB3BB62D411D45AAA3AA7EA5B04D5EB2
+[NotebookApp | INFO] Saving file at /jupyter_to_csv.ipynb
+[NotebookApp | INFO] Saving file at /jupyter_to_csv.ipynb
+[NotebookApp | INFO] Saving file at /jupyter_to_csv.ipynb
+[NotebookApp | INFO] Saving file at /jupyter_to_csv.ipynb
+[NotebookApp | INFO] Saving file at /jupyter_to_csv.ipynb
+[NotebookApp | INFO] interrupted
+[NotebookApp | CRITICAL] Shutdown confirmed
+[NotebookApp | INFO] Shutting down kernels
+[NotebookApp | INFO] Kernel shutdown: 2bbaeabb-3a62-407d-adf5-366bef9054ea
+[NotebookApp | WARNING] No nbgrader_config.py file found (rerun with --debug to see where nbgrader is looking)
+[NotebookApp | INFO] Loading the validate_assignment nbgrader serverextension
+[NotebookApp | INFO] Serving notebooks from local directory: /home/ravikiran/Documents/H-BRS/gui/application
+[NotebookApp | INFO] 0 active kernels 
+[NotebookApp | INFO] The Jupyter Notebook is running at: http://localhost:8888/?token=4c46fb8a20ffd040e8b41c170d67d6ed75bbcbda686e5c2f
+[NotebookApp | INFO] Use Control-C to stop this server and shut down all kernels (twice to skip confirmation).
+[NotebookApp | CRITICAL] 
+    
+    Copy/paste this URL into your browser when you connect for the first time,
+    to login with a token:
+        http://localhost:8888/?token=4c46fb8a20ffd040e8b41c170d67d6ed75bbcbda686e5c2f
+[NotebookApp | INFO] Accepting one-time-token-authenticated connection from 127.0.0.1
+[NotebookApp | INFO] interrupted
+[NotebookApp | CRITICAL] Shutdown confirmed
+[NotebookApp | INFO] Shutting down kernels

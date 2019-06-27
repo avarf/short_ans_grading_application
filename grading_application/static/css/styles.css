@@ -1,0 +1,103 @@
+#header{
+  height: 60px;
+  padding: 10px;
+  margin: 10;
+  background-color: blue;
+  border-radius: 25px;
+}
+
+.header img{
+  display: inline-block;
+  width: 58px;
+  height: 58px;
+}
+
+
+#page-title{
+  font-size: 30px;
+  color: white;
+  margin: 12px;
+  display: inline-block;
+  vertical-align: top;
+}
+
+body {
+  padding: 3px;
+  margin: 0;
+  height: 654px;
+  font: 13px Arial;
+  border: 8px solid black;
+  overflow:hidden;
+  display:block;
+  box-sizing: border-box;
+}
+
+img{
+  height: 58px;
+}
+
+div.input_question {
+margin-top: 2px;
+border-style: groove;
+border-width: 1px;
+padding-left: 2px;
+}
+
+div.groove {
+margin-top: 0px;
+border-style: groove;
+border-width: 1px;
+padding-left: 10px;
+padding-bottom: 0px;
+
+}
+
+p {
+font-size: 15px
+}
+
+legend { 
+  display: block;
+  padding-left: 2px;
+  padding-right: 2px;
+  padding-bottom: 0px;
+  border-radius: 12px;
+  font-size: 20px
+}
+
+#wrapper {
+    text-align: center;
+}
+
+.wrapper button {
+    position: absolute;
+    top: 50%;
+    background-color: #555555;
+    border: none;
+    color: white;
+}
+
+#next_answer {
+    text-align: center;
+}
+
+button.next_ans {
+    display: inline-block;
+    background-color: #555555;
+    border: none;
+    color: white;
+    justify-content: center;
+}
+
+#navigate {
+    text-align: center;
+}
+
+button.feedback {
+    display: inline-block;
+    background-color: #4CAF50;
+    border: none;
+    color: white;
+    justify-content: center;
+}
+
