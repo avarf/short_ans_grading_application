@@ -24,9 +24,9 @@ from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 
 
 from sklearn.naive_bayes import MultinomialNB
-#import sys
-#reload(sys)
-#sys.setdefaultencoding('utf8')
+import sys
+reload(sys)
+sys.setdefaultencoding('utf8')
  
 app = Flask(__name__)
 UPLOAD_DIR = './uploads'
@@ -162,20 +162,22 @@ def naive_bayes(train_vectors, y_train,test_vectors):
     
 def sorted_features(vectorizer,nb):
     #global nb
-    correct_class_prob_sorted = nb.feature_log_prob_[0, :].argsort()
-    incorrect_class_prob_sorted = nb.feature_log_prob_[1, :].argsort()
+    class_zero_prob_sorted = nb.feature_log_prob_[0, :].argsort()
+    class_one_prob_sorted = nb.feature_log_prob_[1, :].argsort()
+    class_two_prob_sorted = nb.feature_log_prob_[2, :].argsort()
 
-    correct = np.take(vectorizer.get_feature_names(), correct_class_prob_sorted[:-1])
-    incorrect = np.take(vectorizer.get_feature_names(), incorrect_class_prob_sorted[:-1])
+    zero = np.take(vectorizer.get_feature_names(), class_zero_prob_sorted[:-1])
+    one = np.take(vectorizer.get_feature_names(), class_one_prob_sorted[:-1])
+    two = np.take(vectorizer.get_feature_names(), class_one_prob_sorted[:-1])
         
-    return correct,incorrect
+    return zero,one,two
 
 def learn():
-    global X_train, X_test, y_train, y_pred, correct, incorrect
+    global X_train, X_test, y_train, y_pred, zero,one,two
     X_train = preprocess_data(X_train)
     vectorizer, train_vectors, test_vectors = tfidf(X_train,X_test)
     nb,y_pred = naive_bayes(train_vectors,y_train,test_vectors)
-    correct,incorrect = sorted_features(vectorizer,nb)
+    zero,one,two = sorted_features(vectorizer,nb)
 
 def update_phrase_exp(item,trig_tok,list_,phrase_list):
     for phrase in list_:
@@ -191,7 +193,7 @@ def update_phrase_exp(item,trig_tok,list_,phrase_list):
 
 def generate_explanation(test_idx):
 	#TODO : modify to make case insensitiv checks
-	global correct_phrases, incorrect_phrases, X_test, y_pred, correct, incorrect
+	global zero_phrases, one_phrases, X_test, y_pred, zero, one, two
         pred = y_pred[test_idx]
         tokens = nltk.word_tokenize(X_test[test_idx])
 
@@ -213,42 +215,54 @@ def generate_explanation(test_idx):
             trigrams.append(str(trigram))
             
 
-        correct_phrases = []
-        incorrect_phrases = []
+        zero_phrases = []
+        one_phrases = []
+        two_phrases = []
         #if pred == 'Correct':
-        correct = map(str, correct)
-        incorrect = map(str, incorrect)
+        zero = map(str, zero)
+        one = map(str, one)
+        two = map(str, two)
         
         for item in bigrams:
-            if item in correct:
-                correct_phrases.append(item)
-            elif item in incorrect:
-                incorrect_phrases.append(item)
+            if item in zero:
+                zero_phrases.append(item)
+            elif item in one:
+                one_phrases.append(item)
+            elif item in two:
+                two_phrases.append(item)
                 
         for item in trigrams:
-            if item in correct:
-                correct_phrases.append(item)
-            elif item in incorrect:
-                incorrect_phrases.append(item)
+            if item in zero:
+                zero_phrases.append(item)
+            elif item in one:
+                one_phrases.append(item)
+            elif item in two:
+                two_phrases.append(item)
             else:
                 trig_tok = nltk.word_tokenize(item)
-                if pred == 'Correct':
-                    list_ = correct
-                    correct_phrases = update_phrase_exp(item,trig_tok,
-                                           list_,correct_phrases)
+                if pred == '0' or pred == 0:
+                    list_ = zero
+                    zero_phrases = update_phrase_exp(item,trig_tok,
+                                           list_,zero_phrases)
+                elif pred == '1' or pred == 1:
+                    list_ = one
+                    one_phrases = update_phrase_exp(item,trig_tok,
+                                           list_,one_phrases)
                 else:
-                    list_ = incorrect
-                    incorrect_phrases = update_phrase_exp(item,trig_tok,
-                                           list_,incorrect_phrases)
+                    list_ = two
+                    two_phrases = update_phrase_exp(item,trig_tok,
+                                           list_,two_phrases)
                         
                         #Also update the tfidf list
         for item in tokens:
-            if item in  correct:
-                correct_phrases.append(item)
-            elif item in incorrect:
-                incorrect_phrases.append(item)
+            if item in  zero:
+                zero_phrases.append(item)
+            elif item in one:
+                one_phrases.append(item)
+            elif item in two:
+                two_phrases.append(item)
             
-        return correct_phrases,incorrect_phrases
+        return zero_phrases,one_phrases,two_phrases
 
 def remove_duplicate_phrases(phrase_list):
         unigrams = []
@@ -285,57 +299,75 @@ def remove_duplicate_phrases(phrase_list):
                 
         return phrase_list
 
+def mark_words(x_test, predicted_phrases, pred_tags, non_pred_phrases, non_pred_tag1, non_pred_tag2):
+	for phrase in predicted_phrases:
+	    highlighted_phrase = pred_tags[0]+phrase+pred_tags[1]
+	    x_test = x_test.replace(phrase,highlighted_phrase)
+	for phrase in non_pred_phrases[0]:
+            if phrase not in predicted_phrases:
+                highlighted_phrase = non_pred_tag1[0]+phrase+non_pred_tag1[1]
+                x_test = x_test.replace(phrase,highlighted_phrase)
+        for phrase in non_pred_phrases[1]:
+            if phrase not in predicted_phrases:
+                highlighted_phrase = non_pred_tag2[0]+phrase+non_pred_tag2[1]
+                x_test = x_test.replace(phrase,highlighted_phrase)
+	return x_test
+
 def as_html_op(x_test, y_pred,feedback=False):
-	global correct_phrases, incorrect_phrases, saved_expl
+	global zero_phrases, one_phrases, two_phrases, saved_expl
 
 	ans = x_test
-        correct_mark_tags = ['<mark style="background-color:#E6EE9C;\">','</mark>']
-        incorrect_mark_tags = ['<mark style="background-color:#FFAB91;\">','</mark>']
+        zero_mark_tags = ['<mark style="background-color:#FFAB91;\">','</mark>']
+        one_mark_tags = ['<mark style="background-color:#E6EE9C;\">','</mark>']
+        two_mark_tags = ['<mark style="background-color:#E6EE9C;\">','</mark>']
+
+	non_pred_phrases = []
 
         #TODO :Mark stopwords in white
-        if y_pred == 'Correct':
-            for phrase in correct_phrases:
-                highlighted_phrase = correct_mark_tags[0]+phrase+correct_mark_tags[1]
-                x_test = x_test.replace(phrase,highlighted_phrase)
-            for phrase in incorrect_phrases:
-                if phrase not in correct_phrases:
-                    highlighted_phrase = incorrect_mark_tags[0]+phrase+incorrect_mark_tags[1]
-                    x_test = x_test.replace(phrase,highlighted_phrase)
+        if y_pred == '0' or y_pred == 0:
+	    non_pred_phrases.append(one_phrases)
+	    non_pred_phrases.append(two_phrases)
+	    x_test = mark_words(x_test, zero_phrases, zero_mark_tags, non_pred_phrases, one_mark_tags, two_mark_tags)
         
-        if y_pred == 'Incorrect':
-            for phrase in incorrect_phrases:
-                highlighted_phrase = incorrect_mark_tags[0]+phrase+incorrect_mark_tags[1]
-                x_test = x_test.replace(phrase,highlighted_phrase)
-            for phrase in correct_phrases:
-                if phrase not in incorrect_phrases:
-                    highlighted_phrase = correct_mark_tags[0]+phrase+correct_mark_tags[1]
-                    x_test = x_test.replace(phrase,highlighted_phrase)
+        if y_pred == '1' or y_pred == 1:
+	    non_pred_phrases.append(zero_phrases)
+	    non_pred_phrases.append(two_phrases)
+	    x_test = mark_words(x_test, one_phrases, one_mark_tags, non_pred_phrases, zero_mark_tags, two_mark_tags)
+
+        if y_pred == '2' or y_pred == 2:
+	    non_pred_phrases.append(zero_phrases)
+	    non_pred_phrases.append(one_phrases)
+	    x_test = mark_words(x_test, two_phrases, two_mark_tags, non_pred_phrases, one_mark_tags, two_mark_tags)
 
 	saved_expl[ans] = x_test
         return x_test
 
-def correction_after_feedback(feedback_corr,feedback_incorr):
-	global correct_phrases, incorrect_phrases, vocab_corr, vocab_incorr
-        for phrase in feedback_corr:
-            if phrase not in correct_phrases:
-                correct_phrases.append(phrase)
+def correction_after_feedback(feedback_zero,feedback_one,feedback_two):
+	global zero_phrases, one_phrases,two_phrases, vocab_zero, vocab_one, vocab_two
+        for phrase in feedback_zero:
+            if phrase not in zero_phrases:
+                zero_phrases.append(phrase)
                 
-        for phrase in feedback_incorr:
-            if phrase not in incorrect_phrases:
-                incorrect_phrases.append(phrase)
+        for phrase in feedback_one:
+            if phrase not in one_phrases:
+                one_phrases.append(phrase)
+
+        for phrase in feedback_two:
+            if phrase not in two_phrases:
+                two_phrases.append(phrase)
 
 #This following code is tentative       
 #        for phrase in vocab_corr:
-#            if phrase in incorrect_phrases:
-#                incorrect_phrases.remove(phrase)
+#            if phrase in one_phrases:
+#                one_phrases.remove(phrase)
                 
 #        for phrase in vocab_incorr:
-#            if phrase in correct_phrases:
-#                correct_phrases.remove(phrase)
-        return correct_phrases, incorrect_phrases
+#            if phrase in zero_phrases:
+#                zero_phrases.remove(phrase)
+        return zero_phrases, one_phrases, two_phrases
 
 def grade_and_explain(feedback):
-    global correct_phrases,incorrect_phrases,X_test,y_pred
+    global zero_phrases,one_phrases,two_phrases,X_test,y_pred
     global html_out,pred
     global saved_grades
     #global saved_ans, given_grades, highlight_green, highlight_red
@@ -345,28 +377,32 @@ def grade_and_explain(feedback):
     idx = 0
     pred = y_pred[idx]
     x_test = X_test[idx]
-    correct_phrases,incorrect_phrases = generate_explanation(idx)
-    correct_phrases = remove_duplicate_phrases(correct_phrases)
-    incorrect_phrases = remove_duplicate_phrases(incorrect_phrases)
-
+    zero_phrases,one_phrases,two_phrases = generate_explanation(idx)
+    zero_phrases = remove_duplicate_phrases(zero_phrases)
+    one_phrases = remove_duplicate_phrases(one_phrases)
+    two_phrases = remove_duplicate_phrases(one_phrases)
     #saved_ans.append(x_test)
     #given_grades.append(pred)
     
-    #highlight_green.append(correct_phrases)
-    #highlight_red.append(incorrect_phrases)
+    #highlight_green.append(zero_phrases)
+    #highlight_red.append(one_phrases)
 
     saved_grades[x_test] = pred
 
     if feedback == 'False':         
     	html_out = Markup(as_html_op(x_test,pred))
     else:
-	for phrase in vocab_corr:
-	    if phrase not in correct_phrases:
-	        correct_phrases.append(phrase)
+	for phrase in vocab_zero:
+	    if phrase not in zero_phrases:
+	        zero_phrases.append(phrase)
 
-    	for phrase in vocab_incorr:
-	    if phrase not in incorrect_phrases:
-	        incorrect_phrases.append(phrase)
+    	for phrase in vocab_one:
+	    if phrase not in one_phrases:
+	        one_phrases.append(phrase)
+
+    	for phrase in vocab_two:
+	    if phrase not in two_phrases:
+	        two_phrases.append(phrase)
 	html_out = Markup(as_html_op(x_test,pred))
 
     return pred,html_out
@@ -413,7 +449,7 @@ def create_output_csv():
 data, list_corpus, list_labels, questions = ([] for i in range(4))
 
 X_train, X_test, y_train, y_test, stud_ans = ([] for i in range(5))
-scores, vocab_corr, vocab_incorr, true_grades, qlist = ([] for i in range(5))
+scores, vocab_zero, vocab_one, vocab_two, true_grades, qlist = ([] for i in range(6))
 ques, question, pred, html_out = ["" for i in range(4)]
 saved_expl, saved_grades = [{} for i in range(2)]
 
@@ -422,6 +458,8 @@ selected='False'
 upload_status = 'False'
 model_ans="Model answer not provided."
 end = None
+DUMMY_ANS = "YOUR ANSWER HERE"
+DUMMY_SCORE = "0"
 ############################################################################
 
 def init_application():
@@ -437,9 +475,9 @@ def init_application():
 
     X_train, X_test, y_train, y_test = train_test_split(list_corpus, 
 							list_labels, 
-							test_size=0.45,
+							test_size=0.25,
 							random_state=40)
-
+    y_train = []
     for idx in range(len(X_train)):
         stud_ans.append(X_train[idx])
     
@@ -544,6 +582,8 @@ def grading():
 
 	stud_ans.remove(ans)
     else:
+	X_train.append(DUMMY_ANS)
+	y_train.append(DUMMY_SCORE)
 	pred,html_out = grade_and_explain(feedback)
 	return render_template('autograde.html',html_out=html_out, 
 						pred=pred, 
@@ -564,43 +604,49 @@ def grading():
 
 @app.route("/feedback", methods=['GET', 'POST'])
 def handle_feedback():
-    global correct_phrases,incorrect_phrases,y_pred,X_test
-    global vocab_corr, vocab_incorr, html_out, pred
+    global zero_phrases,one_phrases,two_phrases,y_pred,X_test
+    global vocab_zero, vocab_one, vocab_two, html_out, pred
     global selected, qlist, ques, question, model_ans
     global true_grades, feedback_green, feedback_red, end
  
     human_label = request.form['pred']
-    feedback_correct = request.form['positive']
-    feedback_incorrect = request.form['negative']
+    feedback_zero = request.form['f_zero']
+    feedback_one = request.form['f_one']
+    feedback_two = request.form['f_two']
 
-    if human_label=='no':
-	if y_pred[0]=='Correct':            
-	    true_pred = 'Incorrect'                
-        else:
-            true_pred = 'Correct'
-    else:
+    if not human_label:            
 	true_pred = y_pred[0]
+    else:
+	true_pred = human_label
 
     true_grades.append(true_pred)
 
-    if not feedback_correct:
-	print "No correction for blue phrases provided for this answer"
+    if not feedback_zero:
+	print "No correction for red phrases provided for this answer"
     else:
-	feedback_correct = [x.strip() for x in feedback_correct.split(",")]
+	feedback_zero = [x.strip() for x in feedback_zero.split(",")]
 
-    if not feedback_incorrect:
-	print "No correction for orange phrases provided for this answer"
+    if not feedback_one:
+	print "No correction for yellow phrases provided for this answer"
     else:
-	feedback_incorrect = [x.strip() for x in feedback_incorrect.split(",")]
+	feedback_one = [x.strip() for x in feedback_one.split(",")]
+
+    if not feedback_two:
+	print "No correction for green phrases provided for this answer"
+    else:
+	feedback_two = [x.strip() for x in feedback_two.split(",")]
 
     
-    for phrase in feedback_correct:
-	vocab_corr.append(phrase)
+    for phrase in feedback_zero:
+	vocab_zero.append(phrase)
 
-    for phrase in feedback_incorrect:
-	vocab_incorr.append(phrase)
+    for phrase in feedback_one:
+	vocab_one.append(phrase)
 
-    correct_phrases,incorrect_phrases = correction_after_feedback(feedback_correct,feedback_incorrect)
+    for phrase in feedback_two:
+	vocab_two.append(phrase)
+
+    zero_phrases,one_phrases,two_phrases = correction_after_feedback(feedback_zero,feedback_one,feedback_two)
 
     if end=="End":
 	create_output_csv()
@@ -610,14 +656,16 @@ def handle_feedback():
 	pred = true_pred
 	saved_grades[x_test] = pred
 	html_out = Markup(as_html_op(x_test,y_pred[0]))
-	feedback_correct = ', '.join(feedback_correct)
-	feedback_incorrect = ', '.join(feedback_incorrect)
+	feedback_zero = ', '.join(feedback_zero)
+	feedback_one = ', '.join(feedback_one)
+	feedback_two = ', '.join(feedback_two)
 	y_pred[0] = pred
 	return render_template('autograde.html',html_out=html_out, 
 						pred=pred, 
 						human_label=human_label,
-						feedback_incorrect=feedback_incorrect,
-						feedback_correct=feedback_correct,
+						feedback_zero=feedback_zero,
+						feedback_one=feedback_one,
+						feedback_two=feedback_two,
 						feedback = "True",
 						qlist=qlist,
 					    	ques=ques,
@@ -627,8 +675,8 @@ def handle_feedback():
 
 @app.route("/next", methods=['GET', 'POST'])
 def postfeedback():
-    global correct_phrases, incorrect_phrases, X_train, y_train, X_test, y_pred
-    global vocab_corr, vocab_incorr, html_out, pred
+    global zero_phrases, one_phrases, two_phrases, X_train, y_train, X_test, y_pred
+    global vocab_zero, vocab_one, vocab_two, html_out, pred
     global selected, qlist, ques, question, model_ans
     global saved_ans, given_grades, end
 
@@ -645,13 +693,17 @@ def postfeedback():
 	
     	pred,html_out = grade_and_explain(feedback)
 
-    	for phrase in vocab_corr:
-	    if phrase not in correct_phrases:
-	        correct_phrases.append(phrase)
+    	for phrase in vocab_zero:
+	    if phrase not in zero_phrases:
+	        zero_phrases.append(phrase)
 
-    	for phrase in vocab_incorr:
-	    if phrase not in incorrect_phrases:
-	        incorrect_phrases.append(phrase)
+    	for phrase in vocab_one:
+	    if phrase not in one_phrases:
+	        one_phrases.append(phrase)
+
+    	for phrase in vocab_two:
+	    if phrase not in two_phrases:
+	        two_phrases.append(phrase)
     else:
 	end = "End" 
 

@@ -54,40 +54,54 @@
 	  	<legend><b>Instructor Feedback</b></legend>
 		<p>
 	      	    <label for="grade">
-			<span>Do you agree with the grade(y/n)?:</span>
+			<span>Do you want to suggest a different grade(y/n)?:</span>
 			<strong><abbr title="required">*</abbr></strong>
 	      	    </label>
 		{% if human_label %}
 			&emsp;&nbsp;&nbsp;&nbsp;<em><b>{{ human_label }}</b></em>
 		{% else %}
-	       		&emsp;&nbsp;&nbsp;&nbsp;<input type="radio" name="pred" value="yes">yes
-	       		&emsp;&emsp;&nbsp;&nbsp;&nbsp;<input type="radio" name="pred" value="no">no
+	       		&emsp;&nbsp;&nbsp;&nbsp;<input type="radio" name="pred" value="0">0
+	       		&emsp;&emsp;&nbsp;&nbsp;&nbsp;<input type="radio" name="pred" value="1">1
+	       		&emsp;&emsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="radio" name="pred" value="2">2
     		{% endif %}
 	       </p>
 
 		<p>
 	      	    <label for="grade">
-			<span>Enter positive phrases (green):</span>
+			<span>Enter "correct" phrases (green):</span>
 			<strong><abbr title="required">*</abbr></strong>
 			<em><br/>(comma separated, max 3-word each)&emsp;</em>
 	      	    </label>
-		{% if feedback_correct %}
-			<em><b>{{ feedback_correct }}</b></em>
+		{% if feedback_two %}
+			<em><b>{{ feedback_two }}</b></em>
 		{% else %}
-	       		<input type="text" name="positive" value="{{ positive }}">
+	       		<input type="text" name="f_two" value="{{ f_two }}">
     		{% endif %}
 	       </p>
 
 		<p>
 	      	    <label for="grade">
-			<span>Enter negative phrases (red):</span>
+			<span>Enter "partially correct" phrases (yellow):</span>
 			<strong><abbr title="required">*</abbr></strong>
 			<em><br/>(comma separated, max 3-word each)&emsp;</em>
 	      	    </label>
-		{% if feedback_incorrect %}
-			<em><b>{{ feedback_incorrect }}</b></em>
+		{% if feedback_one %}
+			<em><b>{{ feedback_one }}</b></em>
 		{% else %}
-	       		<input type="text" name="negative" value="{{ negative }}">
+	       		<input type="text" name="f_one" value="{{ f_one }}">
+    		{% endif %}
+	       </p>
+
+		<p>
+	      	    <label for="grade">
+			<span>Enter "incorrect" phrases (red):</span>
+			<strong><abbr title="required">*</abbr></strong>
+			<em><br/>(comma separated, max 3-word each)&emsp;</em>
+	      	    </label>
+		{% if feedback_zero %}
+			<em><b>{{ feedback_zero }}</b></em>
+		{% else %}
+	       		<input type="text" name="f_zero" value="{{ f_zero }}">
     		{% endif %}
 	       </p>
 		{% if feedback == 'False' %}

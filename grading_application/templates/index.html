@@ -43,21 +43,11 @@
 	  	<legend><b>Grading</b></legend>
 		<p><b>Student Answer:</b> {{ ans }}</p>
 		<p><b>System Predicted Grade:  ...</b></p>
-		<p><b>Manual Grade:</b></p>
-		<ul>
-		  <li>
-		    <label for="grade_1">
-		      <input type="radio" id="Correct" name="grade" value="Correct" >
-		      Correct
-		    </label>
-		  </li>
-		  <li>
-		    <label for="grade_2">
-		      <input type="radio" id="Incorrect" name="grade" value="Incorrect">
-		      Incorrect
-		    </label>
-		  </li>
-	      </ul>
+		<p><b>Manual Grade:
+			&nbsp;<input type="radio" id="zero" name="grade" value="0">0
+			&nbsp;<input type="radio" id="one" name="grade" value="1">1
+			&nbsp;<input type="radio" id="two" name="grade" value="2">2
+		</b></p>
 	   <div  id="next_answer">
 		<button type="submit" class="next_ans">Next answer</button>
 	   </div>
