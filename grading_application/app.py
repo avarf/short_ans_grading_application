@@ -407,9 +407,28 @@ def grade_and_explain(feedback):
 
     return pred,html_out
 
-def integrate_in_jupyter(output_file):
+def integrate_in_jupyter(csv_file):
+    global directory
+    data = pd.read_csv(csv_file)
+    list_student_id = data["student_id"].tolist()
+    list_answers = data["answers"].tolist()
 
-    print "Not implemented yet"
+    for idx in range(len(list_student_id)):
+	ipynb_file = list_student_id[idx]
+	answer = list_answers[idx]
+	with open(os.path.join(app.config['UPLOAD_FOLDER'],ipynb_file)) as json_file:
+	    data = json.load(json_file)
+	    for (index, cell) in enumerate(data['cells']):
+		if 'nbgrader' in cell['metadata'] and cell['metadata']['nbgrader']['solution'] == True:
+		    solution_in_cell = ''
+                    for string in cell['source']:
+                        solution_in_cell = solution_in_cell+string
+		    if solution_in_cell == answer: #also check if checksum matches if possible
+			#save grade
+			#replace ans with expl
+			#break
+		    else:
+			continue
 
 def create_output_csv():
     global data, list_corpus, saved_grades, saved_expl
@@ -432,10 +451,10 @@ def create_output_csv():
             'question_number': ques_num,
             'question': ques,
             'answers':  answers,
-            'grades_given': grades_given,
+            'points': grades_given,
             'explanations':  explanations}
 
-    df = DataFrame(data,columns= ['student_id', 'question_number', 'question', 'answers', 'grades_given', 'explanations'])
+    df = DataFrame(data,columns= ['student_id', 'question_number', 'question', 'answers', 'points', 'explanations'])
 
     if not os.path.exists('./outputs/'):
     	os.makedirs('./outputs/')
@@ -643,13 +662,16 @@ def handle_feedback():
 
     
     for phrase in feedback_zero:
-	vocab_zero.append(phrase)
+	if phrase!="":
+	    vocab_zero.append(phrase)
 
     for phrase in feedback_one:
-	vocab_one.append(phrase)
+	if phrase!="":
+	    vocab_one.append(phrase)
 
     for phrase in feedback_two:
-	vocab_two.append(phrase)
+	if phrase!="":
+	    vocab_two.append(phrase)
 
     zero_phrases,one_phrases,two_phrases = correction_after_feedback(feedback_zero,feedback_one,feedback_two)
 
