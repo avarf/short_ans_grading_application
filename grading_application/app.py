@@ -168,8 +168,8 @@ def sorted_features(vectorizer,nb):
 
     zero = np.take(vectorizer.get_feature_names(), class_zero_prob_sorted[:-1])
     one = np.take(vectorizer.get_feature_names(), class_one_prob_sorted[:-1])
-    two = np.take(vectorizer.get_feature_names(), class_one_prob_sorted[:-1])
-        
+    two = np.take(vectorizer.get_feature_names(), class_two_prob_sorted[:-1])
+
     return zero,one,two
 
 def learn():
@@ -193,7 +193,7 @@ def update_phrase_exp(item,trig_tok,list_,phrase_list):
 
 def generate_explanation(test_idx):
 	#TODO : modify to make case insensitiv checks
-	global zero_phrases, one_phrases, X_test, y_pred, zero, one, two
+	global zero_phrases, one_phrases,two_phrases, X_test, y_pred, zero, one, two
         pred = y_pred[test_idx]
         tokens = nltk.word_tokenize(X_test[test_idx])
 
@@ -318,7 +318,7 @@ def as_html_op(x_test, y_pred,feedback=False):
 
 	ans = x_test
         zero_mark_tags = ['<mark style="background-color:#FFAB91;\">','</mark>']
-        one_mark_tags = ['<mark style="background-color:#E6EE9C;\">','</mark>']
+        one_mark_tags = ['<mark style="background-color:#F9E79F;\">','</mark>']
         two_mark_tags = ['<mark style="background-color:#E6EE9C;\">','</mark>']
 
 	non_pred_phrases = []
@@ -475,7 +475,7 @@ def init_application():
 
     X_train, X_test, y_train, y_test = train_test_split(list_corpus, 
 							list_labels, 
-							test_size=0.25,
+							test_size=0.80,
 							random_state=40)
     y_train = []
     for idx in range(len(X_train)):
@@ -572,7 +572,12 @@ def grading():
     feedback = "False"
     ans = ""
 
-    grade = request.form['grade']
+    grade = request.form.get('grade', None)
+    if grade is None:
+	if stud_ans[0]!= "YOUR ANSWER HERE" and stud_ans[0]!= "NO ANSWER PROVIDED"
+	    grade = '1'
+	else:
+	    grade = '0'
     scores.append(grade)
     y_train.append(grade)
     if len(stud_ans)>0:
@@ -609,7 +614,7 @@ def handle_feedback():
     global selected, qlist, ques, question, model_ans
     global true_grades, feedback_green, feedback_red, end
  
-    human_label = request.form['pred']
+    human_label = request.form.get('new_points', None)
     feedback_zero = request.form['f_zero']
     feedback_one = request.form['f_one']
     feedback_two = request.form['f_two']
