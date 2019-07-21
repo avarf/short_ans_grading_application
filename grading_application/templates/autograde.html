@@ -47,6 +47,7 @@
     {% else %}
 	<p><b>System Predicted Grade:  {{ pred }}</b></p>
     {% endif %}
+	<p class="note"><o>Note:</b><i><mark style="background-color:#E6EE9C;">Green phrases</mark> influence score of 2 points, <mark style="background-color:#F9E79F;">orange phrases</mark> influence 1 points and <mark style="background-color:#FFAB91;">red phrases</mark> influence 0 points.</i></p>
    </fieldset>
 
    <form action="/feedback" method="post">
@@ -60,9 +61,9 @@
 		{% if human_label %}
 			&emsp;&nbsp;&nbsp;&nbsp;<em><b>{{ human_label }}</b></em>
 		{% else %}
-	       		&emsp;&nbsp;&nbsp;&nbsp;<input type="radio" name="pred" value="0">0
-	       		&emsp;&emsp;&nbsp;&nbsp;&nbsp;<input type="radio" name="pred" value="1">1
-	       		&emsp;&emsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="radio" name="pred" value="2">2
+	       		&emsp;&nbsp;&nbsp;&nbsp;<input type="radio" name="new_points" value="0">0
+	       		&emsp;&emsp;&nbsp;&nbsp;&nbsp;<input type="radio" name="new_points" value="1">1
+	       		&emsp;&emsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="radio" name="new_points" value="2">2
     		{% endif %}
 	       </p>
 

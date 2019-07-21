@@ -77,7 +77,14 @@ def jupyter_to_csv():
     			ques_num.append(current_question)
     			checksum_of_question = cell['metadata']['nbgrader']["checksum"]
     			checksums.append(checksum_of_question)
-			ques.append(cell['source'][2])
+			#ques.append(cell['source'][2])
+			ques_source = cell['source']
+                        question = ''
+                        for string in ques_source:
+			    if "\n" in string or string.endswith('\n'):
+				string = string.replace('\n', '  ')
+                            question = question+string
+                        ques.append(question)
 
                         ans_source = next_cell['source']    
                         ans = ''
@@ -408,14 +415,17 @@ def grade_and_explain(feedback):
     return pred,html_out
 
 def integrate_in_jupyter(csv_file):
-    global directory
     data = pd.read_csv(csv_file)
     list_student_id = data["student_id"].tolist()
     list_answers = data["answers"].tolist()
+    list_points = data["points"].tolist()
+    list_expls = data["explanations"].tolist()
 
     for idx in range(len(list_student_id)):
 	ipynb_file = list_student_id[idx]
 	answer = list_answers[idx]
+	grade = list_points[idx]
+	explanation = list_expls[idx]
 	with open(os.path.join(app.config['UPLOAD_FOLDER'],ipynb_file)) as json_file:
 	    data = json.load(json_file)
 	    for (index, cell) in enumerate(data['cells']):
@@ -424,11 +434,13 @@ def integrate_in_jupyter(csv_file):
                     for string in cell['source']:
                         solution_in_cell = solution_in_cell+string
 		    if solution_in_cell == answer: #also check if checksum matches if possible
-			#save grade
-			#replace ans with expl
-			#break
+			cell['metadata']['nbgrader']['points'] = int(grade)
+			if explanation!= "NA"
+			    cell['source'] = explanation
+			break
 		    else:
 			continue
+    return
 
 def create_output_csv():
     global data, list_corpus, saved_grades, saved_expl
@@ -477,8 +489,10 @@ selected='False'
 upload_status = 'False'
 model_ans="Model answer not provided."
 end = None
-DUMMY_ANS = "YOUR ANSWER HERE"
-DUMMY_SCORE = "0"
+DEFAULT_ANS = "YOUR ANSWER HERE"
+DEFAULT_SCORE = "0"
+DUMMY_ANS = "DUMMY ANS FOR 1 P"
+DUMMY_ANS_SCORE = "1"
 ############################################################################
 
 def init_application():
@@ -601,13 +615,15 @@ def grading():
     y_train.append(grade)
     if len(stud_ans)>0:
 	ans = stud_ans[0]
-	saved_expl[ans] = "Manually graded. No Explanation!!"
+	saved_expl[ans] = "NA"
 	saved_grades[ans] = grade
 
 	stud_ans.remove(ans)
     else:
+	X_train.append(DEFAULT_ANS)
 	X_train.append(DUMMY_ANS)
-	y_train.append(DUMMY_SCORE)
+	y_train.append(DEFAULT_SCORE)
+	y_train.append(DUMMY_ANS_SCORE)
 	pred,html_out = grade_and_explain(feedback)
 	return render_template('autograde.html',html_out=html_out, 
 						pred=pred, 
