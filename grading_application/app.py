@@ -5,6 +5,7 @@ import pathlib
 import re
 import codecs
 import json
+import shutil
 from collections import defaultdict
 import glob
 import nltk
@@ -29,21 +30,30 @@ reload(sys)
 sys.setdefaultencoding('utf8')
  
 app = Flask(__name__)
-UPLOAD_DIR = './uploads'
+UPLOAD_DIR = './data/uploads/'
+INPUT_CSV_DIR = './data/csv/'
 app.config['UPLOAD_FOLDER'] = UPLOAD_DIR 
-
-if not os.path.isdir(UPLOAD_DIR):
-    os.mkdir(UPLOAD_DIR)
 
 # Allowed file types for file upload
 ALLOWED_EXTENSIONS = set(['ipynb'])
+
+def create_fresh_path(dir_path):
+    if not os.path.exists(dir_path):
+	os.makedirs(dir_path)
+    else:
+	shutil.rmtree(dir_path)
+	os.makedirs(dir_path)
+    return
+    
+create_fresh_path(UPLOAD_DIR)
+create_fresh_path(INPUT_CSV_DIR)
 
 def allowed_file(filename):
     """Does filename have the right extension?"""
     return '.' in filename and filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
 
 def jupyter_to_csv():
-    data_folder = './uploads/'
+    data_folder = UPLOAD_DIR
 
     filenames = os.listdir(data_folder)  # get all files' and folders' names in the current directory
 
@@ -102,7 +112,7 @@ def jupyter_to_csv():
             'answers':  answers}
 
     df = DataFrame(data,columns= ['student_id', 'question_number', 'checksum_of_question', 'question', 'answers'])
-    df.to_csv('./csv/all_data.csv', encoding='utf-8')
+    df.to_csv(INPUT_CSV_DIR+'all_data.csv', encoding='utf-8')
 
     df1 = df.sort_values(by ='question_number' )
     df1.set_index(keys=['question_number'], drop=False,inplace=True)
@@ -112,7 +122,7 @@ def jupyter_to_csv():
     unique_questions = df["checksum_of_question"].unique().tolist()
     for q_num in q_nums:
 	q = df1.loc[df1.question_number==q_num]
-        q.to_csv('./csv/'+q_num+'.csv', encoding='utf-8')
+        q.to_csv(INPUT_CSV_DIR+q_num+'.csv', encoding='utf-8')
     	
     return q_nums, unique_questions
 
@@ -168,7 +178,6 @@ def naive_bayes(train_vectors, y_train,test_vectors):
     return nb,y_pred
     
 def sorted_features(vectorizer,nb):
-    #global nb
     class_zero_prob_sorted = nb.feature_log_prob_[0, :].argsort()
     class_one_prob_sorted = nb.feature_log_prob_[1, :].argsort()
     class_two_prob_sorted = nb.feature_log_prob_[2, :].argsort()
@@ -225,7 +234,7 @@ def generate_explanation(test_idx):
         zero_phrases = []
         one_phrases = []
         two_phrases = []
-        #if pred == 'Correct':
+
         zero = map(str, zero)
         one = map(str, one)
         two = map(str, two)
@@ -377,8 +386,6 @@ def grade_and_explain(feedback):
     global zero_phrases,one_phrases,two_phrases,X_test,y_pred
     global html_out,pred
     global saved_grades
-    #global saved_ans, given_grades, highlight_green, highlight_red
-
 
     learn()
     idx = 0
@@ -388,12 +395,6 @@ def grade_and_explain(feedback):
     zero_phrases = remove_duplicate_phrases(zero_phrases)
     one_phrases = remove_duplicate_phrases(one_phrases)
     two_phrases = remove_duplicate_phrases(one_phrases)
-    #saved_ans.append(x_test)
-    #given_grades.append(pred)
-    
-    #highlight_green.append(zero_phrases)
-    #highlight_red.append(one_phrases)
-
     saved_grades[x_test] = pred
 
     if feedback == 'False':         
@@ -468,9 +469,10 @@ def create_output_csv():
 
     df = DataFrame(data,columns= ['student_id', 'question_number', 'question', 'answers', 'points', 'explanations'])
 
-    if not os.path.exists('./outputs/'):
-    	os.makedirs('./outputs/')
-    output_file = './outputs/'+ques+'.csv'
+    OUTPUT_CSV_DIR = './outputs/csv/
+    if not os.path.exists(OUTPUT_CSV_DIR):
+    	os.makedirs(OUTPUT_CSV_DIR)
+    output_file = OUTPUT_CSV_DIR+ques+'.csv'
     df.to_csv(output_file,encoding='utf-8')
 
     integrate_in_jupyter(output_file)
@@ -662,17 +664,17 @@ def handle_feedback():
     true_grades.append(true_pred)
 
     if not feedback_zero:
-	print "No correction for red phrases provided for this answer"
+	print("No correction for red phrases provided for this answer")
     else:
 	feedback_zero = [x.strip() for x in feedback_zero.split(",")]
 
     if not feedback_one:
-	print "No correction for yellow phrases provided for this answer"
+	print("No correction for yellow phrases provided for this answer")
     else:
 	feedback_one = [x.strip() for x in feedback_one.split(",")]
 
     if not feedback_two:
-	print "No correction for green phrases provided for this answer"
+	print("No correction for green phrases provided for this answer")
     else:
 	feedback_two = [x.strip() for x in feedback_two.split(",")]
 
