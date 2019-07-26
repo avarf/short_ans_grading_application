@@ -13,6 +13,7 @@ import pandas as pd
 from pandas import DataFrame
 import numpy as np
 import math
+from zipfile import ZipFile
 
 from sklearn.model_selection import train_test_split
 from nltk.tokenize import RegexpTokenizer, word_tokenize
@@ -35,7 +36,7 @@ INPUT_CSV_DIR = './data/csv/'
 app.config['UPLOAD_FOLDER'] = UPLOAD_DIR 
 
 # Allowed file types for file upload
-ALLOWED_EXTENSIONS = set(['ipynb'])
+ALLOWED_EXTENSIONS = set(['ipynb','zip'])
 
 def create_fresh_path(dir_path):
     if not os.path.exists(dir_path):
@@ -52,19 +53,20 @@ def allowed_file(filename):
     """Does filename have the right extension?"""
     return '.' in filename and filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
 
-def jupyter_to_csv():
-    data_folder = UPLOAD_DIR
+def jupyter_to_csv(dataset_path,student_ids,exam_name_lst):
+    #data_folder = UPLOAD_DIR+dataset_name+"/"
+    exam_name = ""
+    for name in exam_name_lst:
+        exam_name = name
+    #filenames = os.listdir(data_folder)  # get all files' and folders' names in the current directory
 
-    filenames = os.listdir(data_folder)  # get all files' and folders' names in the current directory
-
-    student_ids = []
-    for filename in filenames:  # loop through all the files and folders
-        if not os.path.isdir(
-                os.path.join(os.path.abspath(data_folder), filename)) and re.search("^.+ipynb$", filename):  
-            student_ids.append(filename)
+    #student_ids = []
+    #for filename in filenames:  # loop through all the files and folders
+    #    if not os.path.isdir(
+    #            os.path.join(os.path.abspath(data_folder), filename)) and re.search("^.+ipynb$", filename):  
+    #        student_ids.append(filename)
 
     student_ids.sort()
-
     id_for_ans = []
     ques_num = []
     ques = []
@@ -73,7 +75,15 @@ def jupyter_to_csv():
     
     for student_id in student_ids:
 	count = 0
-        with open(data_folder + student_id) as json_file: 
+	ipynb_file = ""
+	path_to_ipynb = dataset_path + "/"+ student_id + "/" + exam_name + "/"
+	print(path_to_ipynb) 
+	filenames = os.listdir(path_to_ipynb)
+	for filename in filenames:
+	    if allowed_file(filename):
+		ipynb_file = filename
+	print(ipynb_file) 
+        with open(path_to_ipynb + ipynb_file) as json_file: 
             source_is_ans = False
             data = json.load(json_file)
 	    for (index, cell) in enumerate(data['cells']):
@@ -436,7 +446,7 @@ def integrate_in_jupyter(csv_file):
                         solution_in_cell = solution_in_cell+string
 		    if solution_in_cell == answer: #also check if checksum matches if possible
 			cell['metadata']['nbgrader']['points'] = int(grade)
-			if explanation!= "NA"
+			if explanation!= "NA":
 			    cell['source'] = explanation
 			break
 		    else:
@@ -469,7 +479,7 @@ def create_output_csv():
 
     df = DataFrame(data,columns= ['student_id', 'question_number', 'question', 'answers', 'points', 'explanations'])
 
-    OUTPUT_CSV_DIR = './outputs/csv/
+    OUTPUT_CSV_DIR = './outputs/csv/'
     if not os.path.exists(OUTPUT_CSV_DIR):
     	os.makedirs(OUTPUT_CSV_DIR)
     output_file = OUTPUT_CSV_DIR+ques+'.csv'
@@ -486,7 +496,7 @@ scores, vocab_zero, vocab_one, vocab_two, true_grades, qlist = ([] for i in rang
 ques, question, pred, html_out = ["" for i in range(4)]
 saved_expl, saved_grades = [{} for i in range(2)]
 
-directory = 'csv/'
+directory = './data/csv/'
 selected='False'
 upload_status = 'False'
 model_ans="Model answer not provided."
@@ -497,11 +507,11 @@ DUMMY_ANS = "DUMMY ANS FOR 1 P"
 DUMMY_ANS_SCORE = "1"
 ############################################################################
 
-def init_application():
+def init_application(dataset_path, student_ids, exam_name):
     global qlist, qlist, directory, data, list_corpus, list_labels
     global questions, question, X_train, X_test, y_train, y_test, stud_ans
     global upload_status
-    qlist, unique_questions  = jupyter_to_csv()
+    qlist, unique_questions  = jupyter_to_csv(dataset_path,student_ids,exam_name)
     ques = qlist[0]
 
     data,list_corpus,list_labels = read_csv(directory+ques+".csv")
@@ -510,7 +520,7 @@ def init_application():
 
     X_train, X_test, y_train, y_test = train_test_split(list_corpus, 
 							list_labels, 
-							test_size=0.80,
+							test_size=0.45,
 							random_state=40)
     y_train = []
     for idx in range(len(X_train)):
@@ -532,14 +542,37 @@ def upload_file():
     total_students = 0
     if request.method =='POST' and 'data_dir' in request.files:
         uploaded_files = request.files.getlist('data_dir')
-	filename = []
+	filename = []	
+
         for file in uploaded_files:
 	    filename = secure_filename(file.filename)
 	    if allowed_file(file.filename):
-		total_students = total_students + 1 
+		#total_students = total_students + 1 
             	file.save(os.path.join(app.config['UPLOAD_FOLDER'],filename))
+		path_to_zip = os.path.join(app.config['UPLOAD_FOLDER'],filename)
+		zf = ZipFile(path_to_zip, 'r')
+		zf.extractall('./data/uploads/')
+		zf.close()
+		os.remove(path_to_zip)
 
-    	total_questions = init_application()
+	dataset_names = os.listdir('./data/uploads/')
+	dataset_entries = []
+	dataset_path = ""
+	for dataset_name in dataset_names:
+	    dataset_path = os.path.join(os.path.abspath('./data/uploads/'), dataset_name)
+	    if os.path.isdir(dataset_path):
+		dataset_entries = os.listdir(dataset_path)
+
+	student_ids = []
+	exam_name = ""	
+	for entry in dataset_entries:
+	    id_path = os.path.join(os.path.abspath(dataset_path), entry)
+	    if os.path.isdir(id_path):
+		total_students = total_students + 1 
+		student_ids.append(entry)
+		exam_name = os.listdir(id_path)
+
+    	total_questions = init_application(dataset_path,student_ids,exam_name)
         upload_status = 'True'
     	return render_template('file_upload.html',
 			   	upload_status=upload_status,
@@ -609,7 +642,7 @@ def grading():
 
     grade = request.form.get('grade', None)
     if grade is None:
-	if stud_ans[0]!= "YOUR ANSWER HERE" and stud_ans[0]!= "NO ANSWER PROVIDED"
+	if stud_ans[0]!= "YOUR ANSWER HERE" and stud_ans[0]!= "NO ANSWER PROVIDED":
 	    grade = '1'
 	else:
 	    grade = '0'
