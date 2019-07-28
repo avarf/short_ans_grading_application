@@ -455,7 +455,7 @@ def integrate_in_jupyter(csv_file):
 		    else:
 			continue
 
-	output_path = './output/'+dataset_name+'/'+student_id+'/'+exam_name+'/'
+	output_path = './outputs/'+dataset_name+'/'+str(student_id)+'/'+exam_name+'/'
 	if not os.path.exists(output_path):
 	    os.makedirs(output_path)
 
