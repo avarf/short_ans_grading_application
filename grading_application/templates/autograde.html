@@ -47,7 +47,7 @@
     {% else %}
 	<p><b>System Predicted Grade:  {{ pred }}</b></p>
     {% endif %}
-	<p class="note"><o>Note:</b><i><mark style="background-color:#E6EE9C;">Green phrases</mark> influence score of 2 points, <mark style="background-color:#F9E79F;">orange phrases</mark> influence 1 points and <mark style="background-color:#FFAB91;">red phrases</mark> influence 0 points.</i></p>
+	<p class="note"><o>Note:</b><i><mark style="background-color:#E6EE9C;">Green phrases</mark> influence score of 2 points, <mark style="background-color:#F9E79F;">yellow phrases</mark> influence 1 points and <mark style="background-color:#FFAB91;">red phrases</mark> influence 0 points.</i></p>
    </fieldset>
 
    <form action="/feedback" method="post">
@@ -112,16 +112,24 @@
 		{% endif %}
 	   </fieldset>
    </form>
-   <form action="/next" method="post">
-	{% if end == 'End' %}
+   {% if end == 'End' %}
+	<form action="/save" method="post">
+	{% if saved == 'Saved' %}
 	   <div id="wrapper">
-	      <em><b>{{ end }}</b></em>
+	      <em><b>{{ saved }}</b></em>
 	   </div>
 	{% else %}
 	   <div id="navigate">
+	      <button type="submit" class="next_ans">Save output</button>
+	   </div>
+	</form>
+	{% endif %}
+    {% else %}
+	<form action="/next" method="post">
+	   <div id="navigate">
 	      <button type="submit" class="next_ans">Next answer</button>
 	   </div>
-    	{% endif %}
-   </form>
+   	</form>
+    {% endif %}
   </body>
 </html>

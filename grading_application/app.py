@@ -53,18 +53,21 @@ def allowed_file(filename):
     """Does filename have the right extension?"""
     return '.' in filename and filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
 
+def get_ipynb_file(dataset_path, student_id, exam_name):
+    ipynb_file = ""
+    path_to_ipynb = dataset_path + "/"+ str(student_id) + "/" + exam_name + "/"
+
+    filenames = os.listdir(path_to_ipynb)
+    for filename in filenames:
+	if allowed_file(filename):
+	    ipynb_file = filename
+    return path_to_ipynb, ipynb_file
+
 def jupyter_to_csv(dataset_path,student_ids,exam_name_lst):
-    #data_folder = UPLOAD_DIR+dataset_name+"/"
+    global exam_name
     exam_name = ""
     for name in exam_name_lst:
-        exam_name = name
-    #filenames = os.listdir(data_folder)  # get all files' and folders' names in the current directory
-
-    #student_ids = []
-    #for filename in filenames:  # loop through all the files and folders
-    #    if not os.path.isdir(
-    #            os.path.join(os.path.abspath(data_folder), filename)) and re.search("^.+ipynb$", filename):  
-    #        student_ids.append(filename)
+        exam_name = exam_name+name	
 
     student_ids.sort()
     id_for_ans = []
@@ -75,14 +78,8 @@ def jupyter_to_csv(dataset_path,student_ids,exam_name_lst):
     
     for student_id in student_ids:
 	count = 0
-	ipynb_file = ""
-	path_to_ipynb = dataset_path + "/"+ student_id + "/" + exam_name + "/"
-	print(path_to_ipynb) 
-	filenames = os.listdir(path_to_ipynb)
-	for filename in filenames:
-	    if allowed_file(filename):
-		ipynb_file = filename
-	print(ipynb_file) 
+	path_to_ipynb, ipynb_file = get_ipynb_file(dataset_path, student_id, exam_name)
+
         with open(path_to_ipynb + ipynb_file) as json_file: 
             source_is_ans = False
             data = json.load(json_file)
@@ -342,7 +339,7 @@ def mark_words(x_test, predicted_phrases, pred_tags, non_pred_phrases, non_pred_
 def as_html_op(x_test, y_pred,feedback=False):
 	global zero_phrases, one_phrases, two_phrases, saved_expl
 
-	ans = x_test
+	ans = ""+x_test
         zero_mark_tags = ['<mark style="background-color:#FFAB91;\">','</mark>']
         one_mark_tags = ['<mark style="background-color:#F9E79F;\">','</mark>']
         two_mark_tags = ['<mark style="background-color:#E6EE9C;\">','</mark>']
@@ -366,6 +363,7 @@ def as_html_op(x_test, y_pred,feedback=False):
 	    x_test = mark_words(x_test, two_phrases, two_mark_tags, non_pred_phrases, one_mark_tags, two_mark_tags)
 
 	saved_expl[ans] = x_test
+
         return x_test
 
 def correction_after_feedback(feedback_zero,feedback_one,feedback_two):
@@ -383,8 +381,10 @@ def correction_after_feedback(feedback_zero,feedback_one,feedback_two):
                 two_phrases.append(phrase)
 
 #This following code is tentative       
-#        for phrase in vocab_corr:
+#        for phrase in vocab_zero:
 #            if phrase in one_phrases:
+#                one_phrases.remove(phrase)
+#            if phrase in two_phrases:
 #                one_phrases.remove(phrase)
                 
 #        for phrase in vocab_incorr:
@@ -426,6 +426,7 @@ def grade_and_explain(feedback):
     return pred,html_out
 
 def integrate_in_jupyter(csv_file):
+    global dataset_name, dataset_path, exam_name
     data = pd.read_csv(csv_file)
     list_student_id = data["student_id"].tolist()
     list_answers = data["answers"].tolist()
@@ -433,11 +434,13 @@ def integrate_in_jupyter(csv_file):
     list_expls = data["explanations"].tolist()
 
     for idx in range(len(list_student_id)):
-	ipynb_file = list_student_id[idx]
+	student_id = list_student_id[idx]
 	answer = list_answers[idx]
 	grade = list_points[idx]
 	explanation = list_expls[idx]
-	with open(os.path.join(app.config['UPLOAD_FOLDER'],ipynb_file)) as json_file:
+	path_to_ipynb, ipynb_file = get_ipynb_file(dataset_path, student_id, exam_name)
+
+        with open(path_to_ipynb + ipynb_file, 'r') as json_file: 
 	    data = json.load(json_file)
 	    for (index, cell) in enumerate(data['cells']):
 		if 'nbgrader' in cell['metadata'] and cell['metadata']['nbgrader']['solution'] == True:
@@ -451,41 +454,17 @@ def integrate_in_jupyter(csv_file):
 			break
 		    else:
 			continue
+
+	output_path = './output/'+dataset_name+'/'+student_id+'/'+exam_name+'/'
+	if not os.path.exists(output_path):
+	    os.makedirs(output_path)
+
+	output_file = os.path.join(output_path, ipynb_file)
+	with open(output_file,  'w') as json_file: 
+    	    json_file.write(json.dumps(data))
     return
 
-def create_output_csv():
-    global data, list_corpus, saved_grades, saved_expl
-    global question, ques
 
-    id_for_ans = data['student_id'].tolist()
-    ques_num = data['question_number'].tolist()
-    ques = []
-    answers = []
-    grades_given = []
-    explanations = []
-    for idx in range(len(list_corpus)):
-	ans = list_corpus[idx]
-	ques.insert(idx, question)
-	answers.insert(idx, ans)
-	grades_given.insert(idx, saved_grades[ans])
-	explanations.insert(idx, saved_expl[ans])
-
-    output = {'student_id': id_for_ans,
-            'question_number': ques_num,
-            'question': ques,
-            'answers':  answers,
-            'points': grades_given,
-            'explanations':  explanations}
-
-    df = DataFrame(data,columns= ['student_id', 'question_number', 'question', 'answers', 'points', 'explanations'])
-
-    OUTPUT_CSV_DIR = './outputs/csv/'
-    if not os.path.exists(OUTPUT_CSV_DIR):
-    	os.makedirs(OUTPUT_CSV_DIR)
-    output_file = OUTPUT_CSV_DIR+ques+'.csv'
-    df.to_csv(output_file,encoding='utf-8')
-
-    integrate_in_jupyter(output_file)
 
 ############################################################################
 
@@ -493,7 +472,8 @@ data, list_corpus, list_labels, questions = ([] for i in range(4))
 
 X_train, X_test, y_train, y_test, stud_ans = ([] for i in range(5))
 scores, vocab_zero, vocab_one, vocab_two, true_grades, qlist = ([] for i in range(6))
-ques, question, pred, html_out = ["" for i in range(4)]
+input_filename, ques, question, pred, html_out = ["" for i in range(5)]
+current_ans, dataset_name, dataset_path, exam_name = ["" for i in range(4)]
 saved_expl, saved_grades = [{} for i in range(2)]
 
 directory = './data/csv/'
@@ -507,13 +487,14 @@ DUMMY_ANS = "DUMMY ANS FOR 1 P"
 DUMMY_ANS_SCORE = "1"
 ############################################################################
 
-def init_application(dataset_path, student_ids, exam_name):
-    global qlist, qlist, directory, data, list_corpus, list_labels
+def init_application(dataset_path, student_ids, exam_name_lst):
+    global qlist, qlist, directory, data, list_corpus, list_labels, input_filename
     global questions, question, X_train, X_test, y_train, y_test, stud_ans
     global upload_status
-    qlist, unique_questions  = jupyter_to_csv(dataset_path,student_ids,exam_name)
+    qlist, unique_questions  = jupyter_to_csv(dataset_path,student_ids,exam_name_lst)
     ques = qlist[0]
 
+    input_filename = ques+".csv"
     data,list_corpus,list_labels = read_csv(directory+ques+".csv")
     questions = data["question"].unique().tolist()
     question = questions[0]
@@ -538,7 +519,7 @@ def index():
 
 @app.route('/upload',methods = ['GET','POST'])
 def upload_file():
-    global upload_status
+    global upload_status, dataset_path, exam_name
     total_students = 0
     if request.method =='POST' and 'data_dir' in request.files:
         uploaded_files = request.files.getlist('data_dir')
@@ -558,21 +539,22 @@ def upload_file():
 	dataset_names = os.listdir('./data/uploads/')
 	dataset_entries = []
 	dataset_path = ""
-	for dataset_name in dataset_names:
+	for name in dataset_names:
+	    dataset_name = name
 	    dataset_path = os.path.join(os.path.abspath('./data/uploads/'), dataset_name)
 	    if os.path.isdir(dataset_path):
 		dataset_entries = os.listdir(dataset_path)
 
 	student_ids = []
-	exam_name = ""	
+	exam_name_lst = ""	
 	for entry in dataset_entries:
 	    id_path = os.path.join(os.path.abspath(dataset_path), entry)
 	    if os.path.isdir(id_path):
 		total_students = total_students + 1 
 		student_ids.append(entry)
-		exam_name = os.listdir(id_path)
+		exam_name_lst = os.listdir(id_path)
 
-    	total_questions = init_application(dataset_path,student_ids,exam_name)
+    	total_questions = init_application(dataset_path,student_ids,exam_name_lst)
         upload_status = 'True'
     	return render_template('file_upload.html',
 			   	upload_status=upload_status,
@@ -581,11 +563,13 @@ def upload_file():
 
 @app.route('/start', methods=['GET', 'POST'])
 def start():
-    global stud_ans
-    ans=stud_ans[0]
-    stud_ans.remove(ans)
+    global stud_ans, current_ans
+    current_ans = ""
+    current_ans=current_ans+stud_ans[0]
+    stud_ans.remove(current_ans)
+
     return render_template('index.html',
-			   ans=ans,
+			   current_ans=current_ans,
 			   qlist=qlist,
 			   question=question,
 			   model_ans=model_ans,
@@ -593,15 +577,16 @@ def start():
 
 @app.route('/new', methods=['GET', 'POST'])
 def new():
-    global stud_ans,directory,data,list_corpus,list_labels 
+    global stud_ans,directory,data,list_corpus,list_labels, current_ans 
     global X_train, X_test, y_train, y_test, saved_expl, saved_grades
-    global selected, qlist, ques, question, model_ans, question_filenames
+    global selected, qlist, ques, question, model_ans, question_filenames, input_filename
 
     if request.method == "POST":
 	ques = request.form['question']
 	#ques_file = question_filenames[ques]
 	
-	filepath = directory+ques+".csv"
+	input_filename = ques+".csv"
+	filepath = directory+input_filename
 	data,list_corpus,list_labels = read_csv(filepath)
 	safe_strings()
 
@@ -620,10 +605,11 @@ def new():
     	    stud_ans.append(X_train[idx])
 	#question = questions[ques]
 	model_ans = "Model answer not provided."
-	ans=stud_ans[0]
-    	stud_ans.remove(ans)
+	current_ans = ""
+	current_ans=current_ans+stud_ans[0]
+    	stud_ans.remove(current_ans)
 	selected='True'
-    	return render_template('index.html',ans=ans,
+    	return render_template('index.html',current_ans=current_ans,
 					    qlist=qlist,
 					    ques=ques,
 					    question=question,
@@ -634,8 +620,8 @@ def new():
 @app.route("/grading", methods=['GET', 'POST'])
 def grading():
     global stud_ans, scores, X_train, X_test, y_train
-    global selected, qlist, ques, question, model_ans
-    global saved_grades, saved_expl
+    global selected, qlist, ques, question, model_ans, current_ans
+    global saved_grades, saved_expl, feedback
 
     feedback = "False"
     ans = ""
@@ -648,18 +634,20 @@ def grading():
 	    grade = '0'
     scores.append(grade)
     y_train.append(grade)
-    if len(stud_ans)>0:
-	ans = stud_ans[0]
-	saved_expl[ans] = "NA"
-	saved_grades[ans] = grade
+    saved_expl[current_ans] = "NA"
+    saved_grades[current_ans] = grade
 
-	stud_ans.remove(ans)
+    if len(stud_ans)>0:
+	current_ans = ""
+	current_ans = current_ans+stud_ans[0]
+	stud_ans.remove(current_ans)
     else:
 	X_train.append(DEFAULT_ANS)
 	X_train.append(DUMMY_ANS)
 	y_train.append(DEFAULT_SCORE)
 	y_train.append(DUMMY_ANS_SCORE)
 	pred,html_out = grade_and_explain(feedback)
+
 	return render_template('autograde.html',html_out=html_out, 
 						pred=pred, 
 						feedback = feedback,
@@ -670,7 +658,7 @@ def grading():
 						selected=selected)
 
     if request.method == "POST":
-	return render_template('index.html',ans=ans,
+	return render_template('index.html',current_ans=current_ans,
 					    qlist=qlist,
 					    ques=ques,
 					    question=question,
@@ -682,7 +670,7 @@ def handle_feedback():
     global zero_phrases,one_phrases,two_phrases,y_pred,X_test
     global vocab_zero, vocab_one, vocab_two, html_out, pred
     global selected, qlist, ques, question, model_ans
-    global true_grades, feedback_green, feedback_red, end
+    global true_grades, feedback_green, feedback_red, end, feedback
  
     human_label = request.form.get('new_points', None)
     feedback_zero = request.form['f_zero']
@@ -726,8 +714,8 @@ def handle_feedback():
 
     zero_phrases,one_phrases,two_phrases = correction_after_feedback(feedback_zero,feedback_one,feedback_two)
 
-    if end=="End":
-	create_output_csv()
+    #if end=="End":
+    #	create_output_csv()
 
     if request.method == "POST":
 	x_test = X_test[0]
@@ -738,13 +726,14 @@ def handle_feedback():
 	feedback_one = ', '.join(feedback_one)
 	feedback_two = ', '.join(feedback_two)
 	y_pred[0] = pred
+	feedback = "True"
 	return render_template('autograde.html',html_out=html_out, 
 						pred=pred, 
 						human_label=human_label,
 						feedback_zero=feedback_zero,
 						feedback_one=feedback_one,
 						feedback_two=feedback_two,
-						feedback = "True",
+						feedback = feedback,
 						qlist=qlist,
 					    	ques=ques,
 					    	question=question,
@@ -756,9 +745,10 @@ def postfeedback():
     global zero_phrases, one_phrases, two_phrases, X_train, y_train, X_test, y_pred
     global vocab_zero, vocab_one, vocab_two, html_out, pred
     global selected, qlist, ques, question, model_ans
-    global saved_ans, given_grades, end
+    global saved_ans, given_grades, end, feedback
 
     end = None
+    saved = None
     feedback = "True"
     if len(X_test)>1:
 	x_test = X_test[0]
@@ -786,15 +776,65 @@ def postfeedback():
 	end = "End" 
 
     if request.method == "POST":
+	feedback = "False"
 	return render_template('autograde.html',html_out=html_out, 
 						pred=pred, 
-						feedback = "False", 
+						feedback = feedback, 
 						end=end,
+						saved=saved,
 						qlist=qlist,
 					    	ques=ques,
 					    	question=question,
 					    	model_ans=model_ans,
 						selected=selected)
+@app.route("/save", methods=['GET', 'POST'])
+def create_output_csv():
+    global data,input_filename, list_corpus, saved_grades, saved_expl
+    global html_out, pred, selected, qlist, ques, question, model_ans
+    global saved_ans, given_grades, end, feedback
+
+    id_for_ans = data['student_id'].tolist()
+    ques_num = data['question_number'].tolist()
+    ques = []
+    answers = []
+    grades_given = []
+    explanations = []
+    for idx in range(len(list_corpus)):
+	ans = list_corpus[idx]
+	ques.insert(idx, question)
+	answers.insert(idx, ans)
+	grades_given.insert(idx, saved_grades[ans])
+	explanations.insert(idx, saved_expl[ans])
+
+    output = {'student_id': id_for_ans,
+            'question_number': ques_num,
+            'question': ques,
+            'answers':  answers,
+            'points': grades_given,
+            'explanations':  explanations}
+
+    df = DataFrame(output,columns= ['student_id', 'question_number', 'question', 'answers', 'points', 'explanations'])
+
+    OUTPUT_CSV_DIR = './outputs/csv/'
+    if not os.path.exists(OUTPUT_CSV_DIR):
+    	os.makedirs(OUTPUT_CSV_DIR)
+    output_file = OUTPUT_CSV_DIR+input_filename
+    df.to_csv(output_file,encoding='utf-8')
+
+    integrate_in_jupyter(output_file)
+
+    if request.method == "POST":
+	return render_template('autograde.html',html_out=html_out, 
+						pred=pred, 
+						feedback = feedback, 
+						end=end,
+						saved="saved",
+						qlist=qlist,
+					    	ques=ques,
+					    	question=question,
+					    	model_ans=model_ans,
+						selected=selected)
+
 
 if __name__ == '__main__':
     app.run(debug=True)
