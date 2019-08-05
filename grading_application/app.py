@@ -404,7 +404,7 @@ def grade_and_explain(feedback):
     zero_phrases,one_phrases,two_phrases = generate_explanation(idx)
     zero_phrases = remove_duplicate_phrases(zero_phrases)
     one_phrases = remove_duplicate_phrases(one_phrases)
-    two_phrases = remove_duplicate_phrases(one_phrases)
+    two_phrases = remove_duplicate_phrases(two_phrases)
     saved_grades[x_test] = pred
 
     if feedback == 'False':         
@@ -451,6 +451,8 @@ def integrate_in_jupyter(csv_file):
 			cell['metadata']['nbgrader']['points'] = int(grade)
 			if explanation!= "NA":
 			    cell['source'] = explanation
+			else:
+			    cell['source'] = answer
 			break
 		    else:
 			continue
@@ -519,7 +521,7 @@ def index():
 
 @app.route('/upload',methods = ['GET','POST'])
 def upload_file():
-    global upload_status, dataset_path, exam_name
+    global upload_status, dataset_name, dataset_path, exam_name
     total_students = 0
     if request.method =='POST' and 'data_dir' in request.files:
         uploaded_files = request.files.getlist('data_dir')
@@ -823,8 +825,7 @@ def create_output_csv():
 
     integrate_in_jupyter(output_file)
 
-    if request.method == "POST":
-	return render_template('autograde.html',html_out=html_out, 
+    return render_template('autograde.html',html_out=html_out, 
 						pred=pred, 
 						feedback = feedback, 
 						end=end,
