@@ -1,0 +1,218 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%2345678901234567890123456789012345678901234567890123456789012345678901234567890
+%        1         2         3         4         5         6         7         8
+
+\documentclass[letterpaper, 10 pt, conference]{ieeeconf}  % Comment this line out if you need a4paper
+
+%\documentclass[a4paper, 10pt, conference]{ieeeconf}      % Use this line for a4 paper
+
+\IEEEoverridecommandlockouts                              % This command is only needed if 
+                                                          % you want to use the \thanks command
+
+\overrideIEEEmargins                                      % Needed to meet printer requirements.
+
+%In case you encounter the following error:
+%Error 1010 The PDF file may be corrupt (unable to open PDF file) OR
+%Error 1000 An error occurred while parsing a contents stream. Unable to analyze the PDF file.
+%This is a known problem with pdfLaTeX conversion filter. The file cannot be opened with acrobat reader
+%Please use one of the alternatives below to circumvent this error by uncommenting one or the other
+%\pdfobjcompresslevel=0
+%\pdfminorversion=4
+
+% See the \addtolength command later in the file to balance the column lengths
+% on the last page of the document
+
+% The following packages can be found on http:\\www.ctan.org
+\usepackage{graphics} % for pdf, bitmapped graphics files
+\usepackage{epsfig} % for postscript graphics files
+%\usepackage{mathptmx} % assumes new font selection scheme installed
+%\usepackage{times} % assumes new font selection scheme installed
+%\usepackage{amsmath} % assumes amsmath package installed
+%\usepackage{amssymb}  % assumes amsmath package installed
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+
+\title{\LARGE \bf
+Application of Model Interpretability Techniques for Short Answer Grading*
+}
+
+
+\author{Ravikiran Bhat, Deebul Nair$^{1}$ and Paul G. Pl{\"o}ger$^{2}$% <-this % stops a space
+%\thanks{*This work was not supported by any organization}% <-this % stops a space
+\thanks{$^{1}$Deebul Nair is with Faculty of Computer Science,
+        University of Applied Sciences Bonn-Rhein-Sieg, Sankt Augustin, Germany
+        {\tt\small deebul-sivarajan.nair@h-brs.de}}%
+\thanks{$^{2}$Bernard D. Researcheris is the Vicedean of the Department of Computer Science, Autonomous Systems, University of Applied Sciences Bonn-Rhein-Sieg, Sankt Augustin, Germany
+        {\tt\small paul.ploeger@h-brs.de}}%
+}
+
+
+\begin{document}
+
+
+
+\maketitle
+\thispagestyle{empty}
+\pagestyle{empty}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{abstract}
+
+This work focuses on associating a reasoning for automated scores for short answers type questions as a means of rationalizing the predicted score to the human graders. Observations resulting from the pre-investigations conducted on two state-of-the-art model-agnostic interpretation techniques, namely, LIME and SHAP serves as the inspiration in the development of our solution. In our work, by relying on a simple BOW model supported by active learning, we develop an algorithm and a grading assisting tool that supports human graders with automated grading together with highlighted features acting as supporting explanations to enable the human graders to interpret the cause of the suggested grades. 
+
+\end{abstract}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{INTRODUCTION}
+
+....
+
+\section{RELATED WORK}
+....
+
+\section{PRE-INVESTIGATIONS}
+
+This section describes a series of investigative experiments which are responsible for determining the main areas of focus in our solution design. Two of the existing model interpretation techniques from literature, namely LIME and SHAP were the main focus of the experiments. All experiments are carried out via a supervised learning process with 65\% of the data used as the training set and the rest for testing. We use a Bag of Words (BOW) approach as the basis for extracting ngrams and use them as predictors for the scores and Naive Bayes classifier was used as the learning model to classify the discrete features. The the grading is treated as a binary classification task with each answer graded as correct or incorrect. The observations from the experiments were used to narrow down the shortcomings of the two model interpretation techniques that we attempt to address in our future solution design. The experiments in this section therefore serve as a benchmark that heavily influences the direction of our approach discussed in the next section.
+
+\subsection{Datasets} 
+
+All experiments in this section were conducted on datasets from two sources:
+\begin{enumerate}
+\item \textbf{Mohler's Dataset}\\
+The dataset consists of a set of questions taken from assignments given out for the Data Structure course at the University of North Texas \cite{mohler2011learning}. The answers were collected from a class of 31 undergraduate students via an online learning assignment. The dataset was created by working on student answers for 80 different questions and a total of 2273 answers. The answers were scored independently by two human graders on scale ranging from 0 (completely incorrect) to 5 (perfect answer). In our pre investigations, student scores above 3 were labeled as `Correct' and those graded 3 or lower were labeled as `Incorrect'. 
+\item \textbf{Neural Network Dataset}\\
+This dataset consists of 17 questions administered as part of the Neural Networks course examination at the University of applied sciences Bonn-Rhein-Sieg. The answers were collected from a class of 39 students from an online examination conducted using Jupyter Notebooks. The dataset was created by using the student answers for the first 17 questions which required mandatory answers. The answers were scored on an integer scale as either 0(completely incorrect), 1 (partially correct) or 2 (perfect answer). In our pre investigations, student scores below 2 points were labelled as `Incorrect' and those with 2 points were labelled as `Correct'.
+\end{enumerate}
+A total of 14 questions selected from both datasets acted as case studies in our experiments. The questions selected included those which required answers in a few words (i.e not exceeding 4-5 words), in one or two sentences, and those where answers were longer than two to three sentences. A sub goal of the investigations in this section was to narrow down the attributes of the questions for which the applied interpretability techniques gives the best results matching human expectations.
+\subsection{Data Preprocessing}
+A separate model is learned after extracting features from the answers to each question. Before extracting features and learning a model, the answers from the two datasets are subject to preprocessing using NLP techniques:
+\begin{itemize}
+\item The model answers and student answers were tokenized into words and all words were converted into lowercase form.
+\item The segmented text obtained from the previous step was then subjected to stopword removal.
+\item Lemmatization was performed in order to obtain the base / dictionary form of a word after removing the inflectional endings in each word.
+\end{itemize}
+
+\subsection{Benchmarking Experiments}
+Two experiments are conducted to check the differences in the degree of understanding gained from the explanations given by LIME and SHAP.
+\begin{enumerate}
+\item \textit{Experiment 1}:\\
+In this experiment, LIME is applied on the unseen test instances  to get an explanation that is locally faithful to the classifier. This experiment is divided into 2 parts. In the first part, we experiment with two feature extractors, namely `CountVectorizer' which gives a a sparse matrix representation of the token counts from the student answers, and the TfidfVectorizer that gives a normailzed score for each of the word occurance count. The goal of the first part of the experiment is determine the best feature extractor by observing the influence  on the final LIME explanation. In the second part of the experiment, we focus on the explanation obtained for every test instance for every case study to determine the degree of understanding gained for different answers, and also narrow down the limitations in the explanations that needs to be addressed.
+\item \textit{Experiment 2}:\\
+In this experiment, we apply Shapley value explanations as the model-agnostic interpretation technique for our predicted scores. The SHAP (SHapley Additive exPlanations) library
+introduced by Lundberg et al.[2] is used to visualize a global overview of the impact of the top k features on the model output. The goal of this experiment is to analyze the global interpretation obtained from SHAP and contrast it with the locally faithful explanations generated by LIME.
+\end{enumerate}
+\subsection{Benchmarking Experiments' Results and Analysis}
+
+
+\section{PROPOSED SOLUTION}
+
+The algorithm developed in this work was aimed with end goal of predicting and presenting student textual responses such that a human end user's understanding of the relation between the components of the current instance and the model's prediction of the score is enhanced in a way similar to the explanations given in LIME, but at the same time also attempting to address some of the limitations of LIME. LIME's restriction of indexing and highlighting only unigrams was observed to be insufficient in promoting the understanding of the human users given the diversity of student answers. Thus including words, we aim at phrases of a set length to be included  in the explanation generated by our algorithm. The second main goal that we aimed to achieve was to identify globally important features that can also be used to explain the local instance being predicted. While former research as well as the results of our prior experiments has shown that establishing globally faithful explanations that also maintains its importance in the local context is still a challenge[1], we attempt to strike a balance between the two by actively involving the human end users in the grading process.
+
+\subsection{Algorithm}
+
+The strategy employed by the algorithm is mentioned in the following text:
+\begin{itemize}
+\item Starting from an unlabeled dataset, a small subset of instances are selected, and are then annotated by a human oracle. Unlike in active learning strategies where the selection of data points to be annotated is done based on the predictive uncertainty of a trained model, our selection is completely random and the annotation proceeds until the initially selected subset is exhausted.
+\item The labeled training set is used to learn our model (using the Naive Bayes classifier) and the ngram range of (1,3) is used to learn features for each class of decision (i.e, grades).
+\item Features learned from the trained model are used as baseline hints to generate explanations for the unseen data. This is done in the following way:
+\begin{enumerate}
+\item Ngrams in the range of (1,3) is first extracted and compared against the global vocabulary of features for each class. Matching features found are set to be included as part of the explanation.
+\item Trigram phrases are given the highest priority to be highlighted in the explanation followed by bigrams. In other words, if there are features present in the form of trigrams, any possible duplications in the form of bigram and/or unigrams is eliminated. The same process is also applied for bigram features.
+\item Any trigram or bigram phrases in the unseen data that begin with the same words as the features that are a part of the global vocabulary are suggested as belonging to the same class of vocabulary and are included as part of the final explanation. In case a user disagrees with the suggestion, the feedback section of the algorithm can be used to correct and update the global vocabulary accordingly.
+\end{enumerate}
+\item Features recognized as part of an explanation are highlighted and the human oracle is allowed to suggest changes in  the score as well as the explanation.
+\item Features suggested by the human oracle is used to update the current vocabulary of explanation features, and the change is highlighted to the human user.
+\item The new instance and its label is used to update the model and recompute the global feature sets for each class of grades. The global vocabulary is then updated with pool of feedbacks received upto the present instance.
+\end{itemize}
+
+\begin{algorithm}[H]
+  \caption{Generate explanation with active feedback}
+  \label{getExpln}
+  \begin{flushleft}
+     \textbf{Input:} unlabeled dataset $\mathcal{D}$\\
+  \end{flushleft}
+  \begin{algorithmic}[1]
+  \State Select n random samples $\mathcal{X} \gets \{x_1, x_2...x_n\}$ from $\mathcal{D}$ as \textit{training} and the rest as \textit{test}.
+  \For{Each $x_i$ in $\mathcal{X}$}
+	\State Obtain annotation $y_i$ for $x_i$ from human oracle.
+\EndFor
+	\State Preprocess the data and train model $\phi$ on annotated dataset.
+\State Obtain feature sets $\mathcal{F}^{\mathcal{C}_k}$ corresponding to each class $\mathcal{C}_k$ where $k = \{0,1,2\}$ and each feature $f_i$ is an ngram in range (1,3).
+\For{Each instance $x_i$ in \textit{test}}
+	\State Get model's decision on the grade.
+	\State Derive ngram features in range (1,3) from instance $x_i$ into $\mathcal{N}$.
+	\State Obtain explanations $\mathcal{E}^{\mathcal{C}_k}$ such that a feature $e_j \in \mathcal{E}^{\mathcal{C}_k}$ iff $e_j \in \mathcal{F}^{\mathcal{C}_k}$ for the set of classes $k = \{0,1,2\}$ .
+	\For{Each $n_i$ in $\mathcal{N}$}
+		\State $\mathcal{E}^{\mathcal{C}_k} \gets n_i \cup \mathcal{E}^{\mathcal{C}_k}$ if $n_i$ begins with the same word as one of the $f_i$ in $\mathcal{F}^{\mathcal{C}_k}$ where $k = \{0,1,2\}$.
+	\EndFor
+	\For{Each explanation set $\mathcal{E}^{\mathcal{C}_k}$}
+		\For{Each feature $e_i$ in $\mathcal{E}^{\mathcal{C}_k}$}
+			\If{Feature $e_i$ in $\mathcal{E}^{\mathcal{C}_k}$ also occurs as part of a larger ngram in $\mathcal{E}^{\mathcal{C}_k}$}
+				\State Remove ngram $e_i$ from $\mathcal{E}^{\mathcal{C}_k}$.
+			\EndIf
+		\EndFor
+	\EndFor 
+	\State Highlight model's decision and explanation.
+	\State Get user feedback on correctness of model prediction and update model's decision for current instance.
+	\State Obtain user feedback $\mathcal{V}^{\mathcal{C}_k}$ on correctness of highlighted explanations for $k = \{0,1,2\}$.
+	\State Update annotated dataset with $\mathcal{X} \gets \mathcal{X} \cup x_i$ and using corrected decision.
+	\State $\mathcal{E}^{\mathcal{C}_k} \gets \mathcal{E}^{\mathcal{C}_k} \cap \mathcal{V}^{\mathcal{C}_k}$ for $k = \{0,1,2\}$.
+	\State Display corrected explanation and update model $\phi$.
+	\State Recompute feature sets $\mathcal{F}^{\mathcal{C}_k}$ followed by $\mathcal{F}^{\mathcal{C}_k} \gets \mathcal{F}^{\mathcal{C}_k} \cap \mathcal{V}^{\mathcal{C}_k}$ for $k = \{0,1,2\}$.
+\EndFor
+  \end{algorithmic}
+\end{algorithm}
+
+\subsection{Interface Design}
+
+The architecture for the developed GUI is shown in Figure \ref{fig:arch}. The whole dataset is first extracted, parsed and converted into comma separated value (CSV) files on a per question basis directly from nbgrader metadata. Tasks such as selecting a specific question for grading, grading the initial answers, and providing feedback for the later predictions are done through the front end. The backend is responsible for preprocessing and extracting the features, learning a model, predicting and generating explanations, updating model from received feedback and finally storing and integrating the final grades and explanations into the jupyter notebooks. The GUI was designed to be hosted and deployed as a web with the micro web framework Flask was used to route requests and responses between the HTML client and the python web server.
+\begin{figure}[H]
+\framebox{\includegraphics[width=0.48\textwidth, height=0.6\textwidth]{images/arch2.pdf}}
+\caption{Software Architecture of GUI}
+\label{fig:arch}
+\end{figure}
+
+\section{USABILITY STUDY} 
+
+\section{CONCLUSIONS}
+
+....
+
+\addtolength{\textheight}{-12cm}   % This command serves to balance the column lengths
+                                  % on the last page of the document manually. It shortens
+                                  % the textheight of the last page by a suitable amount.
+                                  % This command does not take effect until the next page
+                                  % so it should come on the page before the last. Make
+                                  % sure that you do not shorten the textheight too much.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section*{APPENDIX}
+
+....
+
+\section*{ACKNOWLEDGMENT}
+
+....
+
+
+
+\begin{thebibliography}{99}
+
+\bibitem{c1} Marco Tulio Ribeiro, Sameer Singh, and Carlos Guestrin. ``why should I trust you?": Explaining the predictions of any classifier. In Proceedings of the 22nd ACM SIGKDD International Conference on Knowledge Discovery and Data Mining, San Francisco, CA, USA, August 13-17, 2016, pages 1135-1144, 2016.
+\bibitem{c2} Scott M Lundberg and Su-In Lee. A unified approach to interpreting model predictions. In Advances in Neural Information Processing Systems, pages 4765-4774, 2017.
+\end{thebibliography}
+
+
+
+
+\end{document}
