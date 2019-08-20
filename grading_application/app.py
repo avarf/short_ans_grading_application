@@ -322,45 +322,49 @@ def remove_duplicate_phrases(phrase_list):
                 
         return phrase_list
 
-def mark_words(x_test, predicted_phrases, pred_tags, non_pred_phrases, non_pred_tag1, non_pred_tag2):
+def mark_words(x_test, predicted_phrases, pred_tags, non_pred_phrases, non_pred_tag):
 	for phrase in predicted_phrases:
 	    highlighted_phrase = pred_tags[0]+phrase+pred_tags[1]
 	    x_test = x_test.replace(phrase,highlighted_phrase)
-	for phrase in non_pred_phrases[0]:
-            if phrase not in predicted_phrases:
-                highlighted_phrase = non_pred_tag1[0]+phrase+non_pred_tag1[1]
-                x_test = x_test.replace(phrase,highlighted_phrase)
-        for phrase in non_pred_phrases[1]:
-            if phrase not in predicted_phrases:
-                highlighted_phrase = non_pred_tag2[0]+phrase+non_pred_tag2[1]
-                x_test = x_test.replace(phrase,highlighted_phrase)
+	if non_pred_tag is not None:
+	    for phrase in non_pred_phrases:
+                if phrase not in predicted_phrases:
+                    highlighted_phrase = non_pred_tag[0]+phrase+non_pred_tag[1]
+                    x_test = x_test.replace(phrase,highlighted_phrase)
+        #for phrase in non_pred_phrases[1]:
+        #    if phrase not in predicted_phrases:
+        #        highlighted_phrase = non_pred_tag2[0]+phrase+non_pred_tag2[1]
+        #        x_test = x_test.replace(phrase,highlighted_phrase)
 	return x_test
 
 def as_html_op(x_test, y_pred,feedback=False):
 	global zero_phrases, one_phrases, two_phrases, saved_expl
 
 	ans = ""+x_test
-        zero_mark_tags = ['<mark style="background-color:#FFAB91;\">','</mark>']
-        one_mark_tags = ['<mark style="background-color:#F9E79F;\">','</mark>']
+        zero_mark_tags = ['<mark style="background-color:#F39C12;\">','</mark>']
+        one_mark_tags = ['<mark style="background-color:#F39C12;\">','</mark>']
         two_mark_tags = ['<mark style="background-color:#E6EE9C;\">','</mark>']
 
-	non_pred_phrases = []
+	#non_pred_phrases = []
 
         #TODO :Mark stopwords in white
         if y_pred == '0' or y_pred == 0:
-	    non_pred_phrases.append(one_phrases)
-	    non_pred_phrases.append(two_phrases)
-	    x_test = mark_words(x_test, zero_phrases, zero_mark_tags, non_pred_phrases, one_mark_tags, two_mark_tags)
+	    #non_pred_phrases.append(one_phrases)
+	    #non_pred_phrases.append(two_phrases)
+	    #x_test = mark_words(x_test, zero_phrases, zero_mark_tags, non_pred_phrases, one_mark_tags, two_mark_tags)
+	    x_test = mark_words(x_test, zero_phrases, zero_mark_tags, one_phrases, one_mark_tags)
         
         if y_pred == '1' or y_pred == 1:
-	    non_pred_phrases.append(zero_phrases)
-	    non_pred_phrases.append(two_phrases)
-	    x_test = mark_words(x_test, one_phrases, one_mark_tags, non_pred_phrases, zero_mark_tags, two_mark_tags)
+	    #non_pred_phrases.append(zero_phrases)
+	    #non_pred_phrases.append(two_phrases)
+	    #x_test = mark_words(x_test, one_phrases, one_mark_tags, non_pred_phrases, zero_mark_tags, two_mark_tags)
+	    x_test = mark_words(x_test, one_phrases, one_mark_tags, zero_phrases, zero_mark_tags)
 
         if y_pred == '2' or y_pred == 2:
-	    non_pred_phrases.append(zero_phrases)
-	    non_pred_phrases.append(one_phrases)
-	    x_test = mark_words(x_test, two_phrases, two_mark_tags, non_pred_phrases, one_mark_tags, two_mark_tags)
+	    #non_pred_phrases.append(zero_phrases)
+	    #non_pred_phrases.append(one_phrases)
+	    #x_test = mark_words(x_test, two_phrases, two_mark_tags, non_pred_phrases, one_mark_tags, zero_mark_tags)
+	    x_test = mark_words(x_test, two_phrases, two_mark_tags, None)
 
 	saved_expl[ans] = x_test
 
