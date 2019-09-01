@@ -469,7 +469,20 @@ def integrate_in_jupyter(csv_file):
         path_to_ipynb, ipynb_file = get_ipynb_file(
             dataset_path, student_id, exam_name)
 
-        with open(path_to_ipynb + ipynb_file, 'r') as json_file:
+        output_path = './outputs/'+dataset_name + \
+            '/'+str(student_id)+'/'+exam_name+'/'
+        if not os.path.exists(output_path):
+            os.makedirs(output_path)
+
+        output_file = os.path.join(output_path, ipynb_file)
+        output_file_exists = os.path.isfile(output_file)
+        file_to_read = ""
+        if output_file_exists:
+            file_to_read = output_file
+        else:
+            file_to_read = path_to_ipynb + ipynb_file
+
+        with open(file_to_read, 'r') as json_file:
             data = json.load(json_file)
             for (index, cell) in enumerate(data['cells']):
                 if 'nbgrader' in cell['metadata'] and cell['metadata']['nbgrader']['solution'] == True:
@@ -486,12 +499,6 @@ def integrate_in_jupyter(csv_file):
                     else:
                         continue
 
-        output_path = './outputs/'+dataset_name + \
-            '/'+str(student_id)+'/'+exam_name+'/'
-        if not os.path.exists(output_path):
-            os.makedirs(output_path)
-
-        output_file = os.path.join(output_path, ipynb_file)
         with open(output_file,  'w') as json_file:
             json_file.write(json.dumps(data))
     return
