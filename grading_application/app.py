@@ -507,6 +507,8 @@ input_filename, ques, question, pred, html_out = ["" for i in range(5)]
 current_ans, dataset_name, dataset_path, exam_name = ["" for i in range(4)]
 saved_expl, saved_grades = [{} for i in range(2)]
 
+total_answers = 31
+ans_num = 1
 directory = './data/csv/'
 selected = 'False'
 upload_status = 'False'
@@ -520,15 +522,16 @@ DUMMY_ANS_SCORE = "1"
 
 
 def init_application(dataset_path, student_ids, exam_name_lst):
-    global qlist, qlist, directory, data, list_corpus, list_labels, input_filename
+    global qlist, qlist, directory, data, list_corpus, list_labels
     global questions, question, X_train, X_test, y_train, y_test, stud_ans
-    global upload_status
+    global upload_status, total_answers, input_filename
     qlist, unique_questions = jupyter_to_csv(
         dataset_path, student_ids, exam_name_lst)
     ques = qlist[0]
 
     input_filename = ques+".csv"
     data, list_corpus, list_labels = read_csv(directory+ques+".csv")
+    total_answers = len(list_corpus)
     questions = data["question"].unique().tolist()
     question = questions[0]
 
@@ -556,21 +559,24 @@ def index():
 def upload_file():
     global upload_status, dataset_name, dataset_path, exam_name
     total_students = 0
-    if request.method == 'POST' and 'data_dir' in request.files:
-        uploaded_files = request.files.getlist('data_dir')
-        filename = []
 
-        for file in uploaded_files:
+    if request.method == 'POST':
+        if 'data_file' not in request.files:
+            flash('No file part')
+            return redirect(request.url)
+
+        file = request.files['data_file']
+        if file.filename == '':
+            flash('No file selected for uploading')
+            return redirect(request.url)
+        if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
-            if allowed_file(file.filename):
-                #total_students = total_students + 1
-                file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-                path_to_zip = os.path.join(
-                    app.config['UPLOAD_FOLDER'], filename)
-                zf = ZipFile(path_to_zip, 'r')
-                zf.extractall('./data/uploads/')
-                zf.close()
-                os.remove(path_to_zip)
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            path_to_zip = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            zf = ZipFile(path_to_zip, 'r')
+            zf.extractall('./data/uploads/')
+            zf.close()
+            os.remove(path_to_zip)
 
         dataset_names = os.listdir('./data/uploads/')
         dataset_entries = []
@@ -602,7 +608,7 @@ def upload_file():
 
 @app.route('/start', methods=['GET', 'POST'])
 def start():
-    global stud_ans, current_ans
+    global stud_ans, current_ans, total_answers, ans_num
     current_ans = ""
     current_ans = current_ans+stud_ans[0]
     stud_ans.remove(current_ans)
@@ -612,13 +618,15 @@ def start():
                            qlist=qlist,
                            question=question,
                            model_ans=model_ans,
+                           total_answers=total_answers,
+                           ans_num=ans_num,
                            selected=selected)
 
 
 @app.route('/new', methods=['GET', 'POST'])
 def new():
-    global stud_ans, directory, data, list_corpus, list_labels, current_ans
-    global X_train, X_test, y_train, y_test, saved_expl, saved_grades
+    global stud_ans, directory, data, list_corpus, list_labels, current_ans, ans_num
+    global X_train, X_test, y_train, y_test, saved_expl, saved_grades, total_answers
     global selected, qlist, ques, question, model_ans, question_filenames, input_filename
 
     if request.method == "POST":
@@ -628,6 +636,7 @@ def new():
         input_filename = ques+".csv"
         filepath = directory+input_filename
         data, list_corpus, list_labels = read_csv(filepath)
+        total_answers = len(list_corpus)
         safe_strings()
 
         questions = data["question"].unique().tolist()
@@ -654,14 +663,16 @@ def new():
                                ques=ques,
                                question=question,
                                model_ans=model_ans,
+                               total_answers=total_answers,
+                               ans_num=ans_num,
                                selected=selected)
 
 
 @app.route("/grading", methods=['GET', 'POST'])
 def grading():
-    global stud_ans, scores, X_train, X_test, y_train
+    global stud_ans, scores, X_train, X_test, y_train, total_answers                          
     global selected, qlist, ques, question, model_ans, current_ans
-    global saved_grades, saved_expl, feedback
+    global saved_grades, saved_expl, feedback, ans_num
 
     feedback = "False"
     ans = ""
@@ -687,7 +698,7 @@ def grading():
         y_train.append(DEFAULT_SCORE)
         y_train.append(DUMMY_ANS_SCORE)
         pred, html_out = grade_and_explain(feedback)
-
+        ans_num = ans_num+1
         return render_template('autograde.html', html_out=html_out,
                                pred=pred,
                                feedback=feedback,
@@ -695,22 +706,27 @@ def grading():
                                ques=ques,
                                question=question,
                                model_ans=model_ans,
+                               total_answers=total_answers,
+                               ans_num=ans_num,
                                selected=selected)
 
     if request.method == "POST":
+        ans_num = ans_num+1
         return render_template('index.html', current_ans=current_ans,
                                qlist=qlist,
                                ques=ques,
                                question=question,
                                model_ans=model_ans,
+                               total_answers=total_answers,
+                               ans_num=ans_num,
                                selected=selected)
 
 
 @app.route("/feedback", methods=['GET', 'POST'])
 def handle_feedback():
     global zero_phrases, one_phrases, two_phrases, y_pred, X_test
-    global vocab_zero, vocab_one, vocab_two, html_out, pred
-    global selected, qlist, ques, question, model_ans
+    global vocab_zero, vocab_one, vocab_two, html_out, pred, ans_num
+    global selected, qlist, ques, question, model_ans, total_answers
     global true_grades, feedback_green, feedback_red, end, feedback
 
     human_label = request.form.get('new_points', None)
@@ -779,6 +795,8 @@ def handle_feedback():
                                ques=ques,
                                question=question,
                                model_ans=model_ans,
+                               total_answers=total_answers,
+                               ans_num=ans_num,
                                selected=selected)
 
 
@@ -786,8 +804,8 @@ def handle_feedback():
 def postfeedback():
     global zero_phrases, one_phrases, two_phrases, X_train, y_train, X_test, y_pred
     global vocab_zero, vocab_one, vocab_two, html_out, pred
-    global selected, qlist, ques, question, model_ans
-    global saved_ans, given_grades, end, feedback
+    global selected, qlist, ques, question, model_ans, total_answers
+    global saved_ans, given_grades, end, feedback, ans_num
 
     end = None
     saved = None
@@ -819,6 +837,7 @@ def postfeedback():
 
     if request.method == "POST":
         feedback = "False"
+        ans_num = ans_num+1
         return render_template('autograde.html', html_out=html_out,
                                pred=pred,
                                feedback=feedback,
@@ -828,6 +847,8 @@ def postfeedback():
                                ques=ques,
                                question=question,
                                model_ans=model_ans,
+                               total_answers=total_answers,
+                               ans_num=ans_num,
                                selected=selected)
 
 
@@ -835,7 +856,7 @@ def postfeedback():
 def create_output_csv():
     global data, input_filename, list_corpus, saved_grades, saved_expl
     global html_out, pred, selected, qlist, ques, question, model_ans
-    global saved_ans, given_grades, end, feedback
+    global saved_ans, given_grades, end, feedback, total_answers, ans_num
 
     id_for_ans = data['student_id'].tolist()
     ques_num = data['question_number'].tolist()
@@ -877,6 +898,8 @@ def create_output_csv():
                            ques=ques,
                            question=question,
                            model_ans=model_ans,
+                           total_answers=total_answers,
+                           ans_num=ans_num,
                            selected=selected)
 
 

@@ -41,7 +41,7 @@
    <br>
     <fieldset>
   	<legend><b>Grading</b></legend>
-	<p><b>Student Answer:</b> {{ html_out }}</p>
+	<p><b>Student Answer {{ ans_num}} / {{ total_answers }}:</b> {{ html_out }}</p>
     {% if human_label %}
 	<p><b>Assigned Grade:  {{ pred }}</b></p>
     {% else %}

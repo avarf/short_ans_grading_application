@@ -53,20 +53,20 @@ padding-bottom: 0px;
 }
 
 p {
-font-size: 13px
+font-size: 15px
 }
 
 p.note {
-font-size: 9px
+font-size: 11px
 }
 
 legend { 
   display: block;
   padding-left: 2px;
   padding-right: 2px;
-  padding-bottom: 0px;
+  padding-bottom: 4px;
   border-radius: 12px;
-  font-size: 14px
+  font-size: 17px
 }
 
 input[type=radio] {
@@ -85,16 +85,51 @@ input[type=radio] {
     color: white;
 }
 
-#next_answer {
-    text-align: center;
+button.grade_next {
+    display: inline-block;
+    background-color: #555555;
+    margin: 2px 0;
+    border: solid 1px transparent;
+    color: white;
+    border-radius: 4px;
+    padding: 0.5em 1em;
+    color: #FFFFFF;
+    background-color: #9555AF;
+}
+
+button.grade_next:active {
+    transform: translateY(1px);
+    filter: saturate(150%);
+}
+
+button.grade_next:hover {
+    color: #9050AA;
+    border-color: currentColor;
+    background-color: white;
 }
 
 button.next_ans {
     display: inline-block;
     background-color: #555555;
-    border: none;
-    color: white;
+    margin: 2px 0;
+    border: solid 1px transparent;
     justify-content: center;
+    text-align: center;
+    border-radius: 4px;
+    padding: 0.5em 1em;
+    color: #FFFFFF;
+    background-color: #9555AF;
+}
+
+button.next_ans:active {
+    transform: translateY(1px);
+    filter: saturate(150%);
+}
+
+button.next_ans:hover {
+    color: #9050AA;
+    border-color: currentColor;
+    background-color: white;
 }
 
 #navigate {
@@ -104,8 +139,54 @@ button.next_ans {
 button.feedback {
     display: inline-block;
     background-color: #4CAF50;
-    border: none;
+    margin: 2px 0;
+    border: solid 1px transparent;
     color: white;
+    text-align: center;
     justify-content: center;
+    border-radius: 4px;
+    padding: 0.5em 1em;
 }
 
+button.feedback:active {
+    transform: translateY(1px);
+    filter: saturate(150%);
+}
+
+button.feedback:hover {
+    color: #9050AA;
+    border-color: currentColor;
+    background-color: white;
+}
+
+.form-radio
+{
+     position: relative;
+     top: 0;
+     left: 0;
+     height: 25px;
+     width: 25px;
+     background-color: #eee;
+     border-radius: 50%;
+}
+
+.form-radio:hover
+{
+    background-color: #ccc;
+}
+.form-radio:checked
+{
+    background-color: #2196F3;
+    
+}
+.form-radio:checked::after
+{
+    display: none;
+    top: 9px;
+    left: 9px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: white;  
+    
+}
