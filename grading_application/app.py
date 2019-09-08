@@ -37,7 +37,7 @@ INPUT_CSV_DIR = './data/csv/'
 app.config['UPLOAD_FOLDER'] = UPLOAD_DIR
 
 # Allowed file types for file upload
-ALLOWED_EXTENSIONS = set(['ipynb', 'zip'])
+ALLOWED_EXTENSIONS = set(['ipynb', 'zip', 'txt'])
 
 
 def create_fresh_path(dir_path):
@@ -140,6 +140,19 @@ def jupyter_to_csv(dataset_path, student_ids, exam_name_lst):
         q.to_csv(INPUT_CSV_DIR+q_num+'.csv', encoding='utf-8')
 
     return q_nums, unique_questions
+
+def get_model_answers(filename):
+    global model_answers
+    count=0
+    answer_file = open(filename)
+    read_file = answer_file.readlines()
+    for line in read_file:
+        temp = line.strip()
+        ans = temp[5:]
+        count = count+1
+        question_number = "Question_"+str(count)
+        model_answers[question_number] = ans
+    return model_answers
 
 
 def read_csv(filename):
@@ -514,11 +527,14 @@ input_filename, ques, question, pred, html_out = ["" for i in range(5)]
 current_ans, dataset_name, dataset_path, exam_name = ["" for i in range(4)]
 saved_expl, saved_grades = [{} for i in range(2)]
 
+total_questions = 0
+total_students = 0
 total_answers = 31
 ans_num = 1
 directory = './data/csv/'
 selected = 'False'
 upload_status = 'False'
+model_answers = dict()
 model_ans = "Model answer not provided."
 end = None
 DEFAULT_ANS = "YOUR ANSWER HERE"
@@ -565,7 +581,7 @@ def index():
 @app.route('/upload', methods=['GET', 'POST'])
 def upload_file():
     global upload_status, dataset_name, dataset_path, exam_name
-    total_students = 0
+    global total_students,total_questions
 
     if request.method == 'POST':
         if 'data_file' not in request.files:
@@ -612,14 +628,41 @@ def upload_file():
                                total_students=total_students,
                                total_questions=total_questions)
 
+@app.route('/model', methods=['GET', 'POST'])
+def read_model_ans():
+    global model_ans,model_answers, upload_status,total_students,total_questions
+    filename = ""
+    model_ans_status = "False"
+    if request.method == 'POST':
+        if 'model_ans' not in request.files:
+            flash('No file part')
+            return redirect(request.url)
+
+        file = request.files['model_ans']
+        if file.filename == '':
+            flash('No file selected for uploading')
+            return redirect(request.url)
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+
+        model_answers = get_model_answers('./data/uploads/'+filename)
+        if len(model_answers) > 0:
+            model_ans_status = "True"
+        return render_template('file_upload.html',
+                               upload_status=upload_status,
+                               total_students=total_students,
+                               total_questions=total_questions,
+                               model_ans_status=model_ans_status)
 
 @app.route('/start', methods=['GET', 'POST'])
 def start():
-    global stud_ans, current_ans, total_answers, ans_num
+    global stud_ans, current_ans, total_answers, ans_num, model_answers, model_ans
     current_ans = ""
     current_ans = current_ans+stud_ans[0]
     stud_ans.remove(current_ans)
-
+    if len(model_answers) > 0:
+        model_ans = model_answers["Question_1"]
     return render_template('index.html',
                            current_ans=current_ans,
                            qlist=qlist,
@@ -634,9 +677,10 @@ def start():
 def new():
     global stud_ans, directory, data, list_corpus, list_labels, current_ans, ans_num
     global X_train, X_test, y_train, y_test, saved_expl, saved_grades, total_answers
-    global selected, qlist, ques, question, model_ans, question_filenames, input_filename
+    global selected, qlist, ques, question, model_answers, model_ans, question_filenames, input_filename
 
     if request.method == "POST":
+        #Get the question number selected
         ques = request.form['question']
         #ques_file = question_filenames[ques]
 
@@ -644,7 +688,7 @@ def new():
         filepath = directory+input_filename
         data, list_corpus, list_labels = read_csv(filepath)
         total_answers = len(list_corpus)
-        safe_strings()
+        #safe_strings()
 
         questions = data["question"].unique().tolist()
         question = questions[0]
@@ -660,7 +704,10 @@ def new():
         for idx in range(len(X_train)):
             stud_ans.append(X_train[idx])
         #question = questions[ques]
-        model_ans = "Model answer not provided."
+        if len(model_answers) > 0:
+            model_ans = model_answers[ques]
+        else:
+            model_ans = "Model answer not provided."        
         current_ans = ""
         current_ans = current_ans+stud_ans[0]
         stud_ans.remove(current_ans)

@@ -13,6 +13,7 @@
     <div class="input_question"> 
 	    <form action="/upload" method="post" enctype="multipart/form-data" >
 	    <p><b>Upload Subject Data</b> </p>
+	    	<p class="note"><i> Please upload a zipped nbgrader metadata file</i></p>
 	    <hr>
 		<p><b>Select Data file:</b>&emsp;<input id="picker" type="file" name='data_file' autocomplete="off" required/>
 		<br><input type='submit' value='upload'>
@@ -31,6 +32,22 @@
 			<p><b>Number of Questions:</b> {{ total_questions }}</p>
 		{% endif %}
    </fieldset>
+   <br/>
+    <div class="input_modelans"> 
+	    <form action="/model" method="post" enctype="multipart/form-data" >
+	    <p><b>Upload Model Answers (Optional)</b> </p>
+	    	<p class="note"><i> Please upload a txt file containing the model answers if available:</i></p>
+	    <hr>
+		<p><b>Select file:</b>&emsp;<input id="picker" type="file" name='model_ans' autocomplete="off" required/>
+		<br><input type='submit' value='upload'>
+	    	</p>
+	    	{% if model_ans_status %}
+	    	    <p><b>Model answers uploaded</b></p>
+	    	{% else %}
+	    	    <p><b>No model answer file provided.</b></p>
+	    	{% endif %}
+	    </form>
+    </div>
    <br/>
    <form action="/start" method="post">
 	   <div id="navigate">
