@@ -231,7 +231,6 @@ def learn():
     nb, y_pred = naive_bayes(train_vectors, y_train, test_vectors)
     zero, one, two = sorted_features(vectorizer, nb)
 
-
 def update_phrase_exp(item, trig_tok, list_, phrase_list):
     for phrase in list_:
         phrase_tok = nltk.word_tokenize(phrase)
@@ -272,9 +271,9 @@ def generate_explanation(test_idx):
     one_phrases = []
     two_phrases = []
 
-    zero = map(str, zero)
-    one = map(str, one)
-    two = map(str, two)
+    #zero = map(str, zero)
+    #one = map(str, one)
+    #two = map(str, two)
 
     for item in bigrams:
         if item in zero:
@@ -434,7 +433,7 @@ def correction_after_feedback(feedback_zero, feedback_one, feedback_two):
 
 def grade_and_explain(feedback):
     global zero_phrases, one_phrases, two_phrases, X_test, y_pred
-    global html_out, pred
+    global html_out, pred, vocab_zero, vocab_one, vocab_two
     global saved_grades
 
     learn()
@@ -442,6 +441,7 @@ def grade_and_explain(feedback):
     pred = y_pred[idx]
     x_test = X_test[idx]
     zero_phrases, one_phrases, two_phrases = generate_explanation(idx)
+
     zero_phrases = remove_duplicate_phrases(zero_phrases)
     one_phrases = remove_duplicate_phrases(one_phrases)
     two_phrases = remove_duplicate_phrases(two_phrases)
@@ -560,7 +560,7 @@ def init_application(dataset_path, student_ids, exam_name_lst):
 
     X_train, X_test, y_train, y_test = train_test_split(list_corpus,
                                                         list_labels,
-                                                        test_size=0.45,
+                                                        test_size=0.60,
                                                         random_state=40)
     y_train = []
     for idx in range(len(X_train)):
@@ -695,7 +695,7 @@ def new():
 
         X_train, X_test, y_train, y_test = train_test_split(list_corpus,
                                                             list_labels,
-                                                            test_size=0.45,
+                                                            test_size=0.60,
                                                             random_state=40)
         saved_expl = {}
         saved_grades = {}
@@ -753,6 +753,8 @@ def grading():
         y_train.append(DUMMY_ANS_SCORE)
         pred, html_out = grade_and_explain(feedback)
         ans_num = ans_num+1
+        print(html_out)
+        print("\n")
         return render_template('autograde.html', html_out=html_out,
                                pred=pred,
                                feedback=feedback,
