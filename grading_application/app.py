@@ -29,7 +29,7 @@ from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 from sklearn.naive_bayes import MultinomialNB
 import sys
 reload(sys)
-#sys.setdefaultencoding('utf8')
+# sys.setdefaultencoding('utf8')
 
 app = Flask(__name__)
 UPLOAD_DIR = './data/uploads/'
@@ -141,9 +141,10 @@ def jupyter_to_csv(dataset_path, student_ids, exam_name_lst):
 
     return q_nums, unique_questions
 
+
 def get_model_answers(filename):
     global model_answers
-    count=0
+    count = 0
     answer_file = open(filename)
     read_file = answer_file.readlines()
     for line in read_file:
@@ -230,6 +231,7 @@ def learn():
     vectorizer, train_vectors, test_vectors = tfidf(X_train, X_test)
     nb, y_pred = naive_bayes(train_vectors, y_train, test_vectors)
     zero, one, two = sorted_features(vectorizer, nb)
+
 
 def update_phrase_exp(item, trig_tok, list_, phrase_list):
     for phrase in list_:
@@ -355,18 +357,19 @@ def remove_duplicate_phrases(phrase_list):
     return phrase_list
 
 
-def mark_words(x_test, predicted_phrases, pred_tags, non_pred_phrases, non_pred_tag1, non_pred_tag2):
+def mark_words(x_test, predicted_phrases, pred_tags, non_pred_phrases):
     for phrase in predicted_phrases:
         highlighted_phrase = pred_tags[0]+phrase+pred_tags[1]
         x_test = x_test.replace(phrase, highlighted_phrase)
-    for phrase in non_pred_phrases[0]:
-        if phrase not in predicted_phrases:
-            highlighted_phrase = non_pred_tag1[0]+phrase+non_pred_tag1[1]
-            x_test = x_test.replace(phrase, highlighted_phrase)
-    for phrase in non_pred_phrases[1]:
-        if phrase not in predicted_phrases:
-            highlighted_phrase = non_pred_tag2[0]+phrase+non_pred_tag2[1]
-            x_test = x_test.replace(phrase, highlighted_phrase)
+    #if non_pred_tag is not None:
+    #    for phrase in non_pred_phrases:
+    #        if phrase not in predicted_phrases:
+    #            highlighted_phrase = non_pred_tag[0]+phrase+non_pred_tag[1]
+    #            x_test = x_test.replace(phrase, highlighted_phrase)
+    # for phrase in non_pred_phrases[1]:
+    #    if phrase not in predicted_phrases:
+    #        highlighted_phrase = non_pred_tag2[0]+phrase+non_pred_tag2[1]
+    #        x_test = x_test.replace(phrase,highlighted_phrase)
     return x_test
 
 
@@ -378,26 +381,27 @@ def as_html_op(x_test, y_pred, feedback=False):
     one_mark_tags = ['<mark style="background-color:#F9E79F;\">', '</mark>']
     two_mark_tags = ['<mark style="background-color:#E6EE9C;\">', '</mark>']
 
-    non_pred_phrases = []
+    #non_pred_phrases = []
 
     # TODO :Mark stopwords in white
     if y_pred == '0' or y_pred == 0:
-        non_pred_phrases.append(one_phrases)
-        non_pred_phrases.append(two_phrases)
-        x_test = mark_words(x_test, zero_phrases, zero_mark_tags,
-                            non_pred_phrases, one_mark_tags, two_mark_tags)
+        # non_pred_phrases.append(one_phrases)
+        # non_pred_phrases.append(two_phrases)
+        #x_test = mark_words(x_test, zero_phrases, zero_mark_tags, non_pred_phrases, one_mark_tags, two_mark_tags)
+        x_test = mark_words(x_test, zero_phrases,
+                            zero_mark_tags, one_phrases, one_mark_tags)
 
     if y_pred == '1' or y_pred == 1:
-        non_pred_phrases.append(zero_phrases)
-        non_pred_phrases.append(two_phrases)
-        x_test = mark_words(x_test, one_phrases, one_mark_tags,
-                            non_pred_phrases, zero_mark_tags, two_mark_tags)
+        # non_pred_phrases.append(zero_phrases)
+        # non_pred_phrases.append(two_phrases)
+        #x_test = mark_words(x_test, one_phrases, one_mark_tags, non_pred_phrases, zero_mark_tags, two_mark_tags)
+        x_test = mark_words(x_test, one_phrases, one_mark_tags, None)
 
     if y_pred == '2' or y_pred == 2:
-        non_pred_phrases.append(zero_phrases)
-        non_pred_phrases.append(one_phrases)
-        x_test = mark_words(x_test, two_phrases, two_mark_tags,
-                            non_pred_phrases, zero_mark_tags, one_mark_tags)
+        # non_pred_phrases.append(zero_phrases)
+        # non_pred_phrases.append(one_phrases)
+        #x_test = mark_words(x_test, two_phrases, two_mark_tags, non_pred_phrases, one_mark_tags, zero_mark_tags)
+        x_test = mark_words(x_test, two_phrases, two_mark_tags, None)
 
     saved_expl[ans] = x_test
 
@@ -581,7 +585,7 @@ def index():
 @app.route('/upload', methods=['GET', 'POST'])
 def upload_file():
     global upload_status, dataset_name, dataset_path, exam_name
-    global total_students,total_questions
+    global total_students, total_questions
 
     if request.method == 'POST':
         if 'data_file' not in request.files:
@@ -628,9 +632,10 @@ def upload_file():
                                total_students=total_students,
                                total_questions=total_questions)
 
+
 @app.route('/model', methods=['GET', 'POST'])
 def read_model_ans():
-    global model_ans,model_answers, upload_status,total_students,total_questions
+    global model_ans, model_answers, upload_status, total_students, total_questions
     filename = ""
     model_ans_status = "False"
     if request.method == 'POST':
@@ -654,6 +659,7 @@ def read_model_ans():
                                total_students=total_students,
                                total_questions=total_questions,
                                model_ans_status=model_ans_status)
+
 
 @app.route('/start', methods=['GET', 'POST'])
 def start():
@@ -680,7 +686,7 @@ def new():
     global selected, qlist, ques, question, model_answers, model_ans, question_filenames, input_filename
 
     if request.method == "POST":
-        #Get the question number selected
+        # Get the question number selected
         ques = request.form['question']
         #ques_file = question_filenames[ques]
 
@@ -688,7 +694,7 @@ def new():
         filepath = directory+input_filename
         data, list_corpus, list_labels = read_csv(filepath)
         total_answers = len(list_corpus)
-        #safe_strings()
+        # safe_strings()
 
         questions = data["question"].unique().tolist()
         question = questions[0]
@@ -707,7 +713,7 @@ def new():
         if len(model_answers) > 0:
             model_ans = model_answers[ques]
         else:
-            model_ans = "Model answer not provided."        
+            model_ans = "Model answer not provided."
         current_ans = ""
         current_ans = current_ans+stud_ans[0]
         stud_ans.remove(current_ans)
@@ -724,7 +730,7 @@ def new():
 
 @app.route("/grading", methods=['GET', 'POST'])
 def grading():
-    global stud_ans, scores, X_train, X_test, y_train, total_answers                          
+    global stud_ans, scores, X_train, X_test, y_train, total_answers
     global selected, qlist, ques, question, model_ans, current_ans
     global saved_grades, saved_expl, feedback, ans_num
 
