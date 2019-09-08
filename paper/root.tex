@@ -142,7 +142,7 @@ Ordinal data captured using the above method was then mapped to a single value i
 \item The mapping obtained for the ordinal value with the largest ratio in the data for a given question is taken to be the Interpretation Level (IL) for that In case we have a situation where more than one type of ordinal score has the same maximum ratio of occurrences (for e.g ordinal scores 1 and 2 both having a ratio 6 out of a total of 15 samples), in such a case we simply take the average of those ordinal scores, and the average value that lies between 1 and 3 is mapped to [0,1] range directly. 
 \item In case of SHAP, the ordinal data was directly mapped to the [0, 1] range which corresponded to the Interpretation Level (IL) for SHAP for that question.
 \end{itemize}
-The Figure  \ref{fig:comparison1} shows the comparison of the interpretation levels for every question used as case study from the Mohler's dataset.
+The Figure \ref{fig:comparison1} shows the comparison of the interpretation levels for every question used as case study from the Mohler's dataset.
 \begin{figure}[H]
 \framebox{\includegraphics[width=0.48\textwidth, height=0.4\textwidth]{images/all_categ.png}}
 \caption{Quantitative Interpretation Level comparison of LIME and SHAP for different questions.}
@@ -216,7 +216,13 @@ The architecture for the developed GUI is shown in Figure \ref{fig:arch}. The wh
 \caption{Software Architecture of GUI}
 \label{fig:arch}
 \end{figure}
-
+The results of the quantitative evaluation done by repeating the procedure carried out in our preinvestigations, i.e, using a Likert scale of 3 values (1,2 and 3) to score the degree of the acceptance of the displayed explanation for every answer to all questions from Mohler's dataset used as case studies, and then using the SciPy library’s interpolation function to map the maximally occurring score for a question into the ranges [0,0.33], [0.34,0.66] and [0.67,1] (for 1, 2 and 3 respectively) is shown in Figure \ref{fig:comparison2}.
+\begin{figure}[H]
+\framebox{\includegraphics[width=0.48\textwidth, height=0.35\textwidth]{images/all_categ2.png}}
+\caption{Quantitative Interpretation Level comparison of LIME, SHAP and the proposed solution for different questions.}
+\label{fig:comparison2}
+\end{figure}
+We observe that in the majority of the cases, the performance from the proposed solution in terms of the level of interpretation gained from the explanation is better than or is at least as good as that obtained from LIME and SHAP.
 \section{USABILITY STUDY} 
 Since the development of the autograding assisting system is geared towards use in examinations and in-house assignments, a user evaluation was conducted at the University of Applied Sciences Bonn-Rhein-Sieg aimed at assessing the quality of the developed grading system through interacting with real users, and thereby determining the requirements and limitations that were overlooked due to the experimenter's bias. A full-time member of the University's lecturing staff and four other research associates were asked to attempt using the software to grade a number of questions from the Mohler's dataset as part of the evaluation study. Prior to the evaluation, each user was given a brief presentation on the usage of the system. Each user was then asked to grade multiple questions from the dataset. The questions selected differed in the length of the responses required from the students. The users were asked to `think out loud' and their words and actions were video recorded. The completion of the grading of all student answers to one question was immediately accompanied by a short online questionnaire to determine whether the explanations given was useful to the users.
 \section{CONCLUSIONS}
@@ -239,9 +245,9 @@ Since the development of the autograding assisting system is geared towards use 
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section*{APPENDIX}
+%\section*{APPENDIX}
 
-....
+%....
 
 \section*{ACKNOWLEDGMENT}
 
