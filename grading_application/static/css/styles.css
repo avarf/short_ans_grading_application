@@ -20,13 +20,16 @@
   display: inline-block;
   vertical-align: top;
 }
-
+html{
+    width:100%;
+    height:100%;
+}
 body {
   padding: 3px;
-  margin: 0;
-  height: 654px;
+  margin: 3px;
+  min-height: 100%;
   font: 13px Arial;
-  border: 6px solid black;
+  border: 10px solid black;
   overflow:scroll;
   display:block;
   box-sizing: border-box;
@@ -44,11 +47,11 @@ padding-left: 2px;
 }
 
 div.groove {
-margin-top: 0px;
+margin-top: 2px;
 border-style: groove;
 border-width: 1px;
 padding-left: 10px;
-padding-bottom: 0px;
+padding-bottom: 2px;
 
 }
 

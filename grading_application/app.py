@@ -398,7 +398,7 @@ def as_html_op(x_test, y_pred, feedback=False):
         non_pred_phrases.append(zero_phrases)
         non_pred_phrases.append(one_phrases)
         x_test = mark_words(x_test, two_phrases, two_mark_tags,
-                            non_pred_phrases, one_mark_tags, two_mark_tags)
+                            non_pred_phrases, zero_mark_tags, one_mark_tags)
 
     saved_expl[ans] = x_test
 
