@@ -216,9 +216,22 @@ The architecture for the developed GUI is shown in Figure \ref{fig:arch}. The wh
 \caption{Software Architecture of GUI}
 \label{fig:arch}
 \end{figure}
+With the goal of having a minimalist and easy to use design for the interface, the GUI frontend was set with one radio button for each possible grade. In order to assist the human users during the initial grading, a section displaying the model answer to the current answer is provided. An example snapshot of the GUI during the initial annotation of the answers is shown in Figure \ref{fig:gui2}.
+\begin{figure}[H]
+\framebox{\includegraphics[width=0.48\textwidth, height=0.3\textwidth]{images/gui2.png}}
+\caption{GUI display during the initial annotation stage.}
+\label{fig:gui2}
+\end{figure}
+After a fixed set of answers are graded by the users, the tool starts assigning grades to the remaining unseen answers. Figure \ref{fig:gui3} shows the GUI display during this stage where the features contributing to the grade are highlighted in a color specific to that grade. In our implementation, a features influencing a score of 2 points are highlighted in green, those for 1 points are highlighted in yellow and red for zero points.
+\begin{figure}[H]
+\framebox{\includegraphics[width=0.48\textwidth, height=0.3\textwidth]{images/gui3.png}}
+\caption{GUI display during the autograding and feedback stage.}
+\label{fig:gui3}
+\end{figure}
+As seen in Figure \ref{fig:gui3}, phrases upto three words and not just single words are highlighted as part of the explanation. In addition, the human user may provide feedback in case of a disagreement with the system predicted grade and explanation that helps to subsequently improve the grades and explantions for the new unseen answers.\\
 The results of the quantitative evaluation done by repeating the procedure carried out in our preinvestigations, i.e, using a Likert scale of 3 values (1,2 and 3) to score the degree of the acceptance of the displayed explanation for every answer to all questions from Mohler's dataset used as case studies, and then using the SciPy library’s interpolation function to map the maximally occurring score for a question into the ranges [0,0.33], [0.34,0.66] and [0.67,1] (for 1, 2 and 3 respectively) is shown in Figure \ref{fig:comparison2}.
 \begin{figure}[H]
-\framebox{\includegraphics[width=0.48\textwidth, height=0.35\textwidth]{images/all_categ2.png}}
+\framebox{\includegraphics[width=0.48\textwidth, height=0.34\textwidth]{images/all_categ2.png}}
 \caption{Quantitative Interpretation Level comparison of LIME, SHAP and the proposed solution for different questions.}
 \label{fig:comparison2}
 \end{figure}
