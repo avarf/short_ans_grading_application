@@ -33,7 +33,7 @@
 \usepackage{algpseudocode}
 
 \title{\LARGE \bf
-Application of Model Interpretability Techniques for Short Answer Grading*
+Explaining and Interpreting Model Predictions for Short Answer Grading*
 }
 
 
@@ -108,10 +108,47 @@ introduced by Lundberg et al.[2] is used to visualize a global overview of the i
 Results of experiment 1 showed that, contrary to expectations, performance in terms of the final accuracy as well as the explanations from LIME were identical for both CountVectorizer and TfidfVectorizer. Observing the predictions and explanations on unseen data, it was seen that while very few instances showed some minor differences in the highlighting of unigrams, these differences did not have any noticeable impact on the interpretation gained by the end user. Some other general observations on the LIME explanations summarized below:
 \begin{itemize}
 \item The shorter the answer length, the closer the highlighted unigrams was to human expectations. 
-\item Lower model accuracies consequently ended up effecting not only the predicted scores, but the resulting LIME highlighted explanations also tended to being more unacceptable by humans.
+\item Lower model accuracies consequently ended up affecting not only the predicted scores, but the resulting LIME highlighted explanations also tended to being more unacceptable by humans.
 \item Larger answers and higher linguistic diversity in the student responses resulted in explanations that were inconceivable due to LIME's limitations in highlighting only unigrams in the text.
 \end{itemize}
 \textit{Experiment 2:}\\
+We rely on the SHAP's summary plot to get a display of the top 20 globally important features affecting the model output for every answer in the test set to a given question. An example summary plot for the class ``Correct" showing the SHAP value for the most important features identified from among the test samples to the question: \textit{``What is the role of prototype program in problem solving?"} is shown in Figure \ref{fig:shap1} that has the following model answer in the dataset: \textit{``To simulate the behaviour of portions of desired software product"}. 
+\begin{figure}[H]
+\framebox{\includegraphics[width=0.48\textwidth, height=0.5\textwidth]{images/shap/all_features_0_nb.png}}
+\caption{An example SHAP summary plot of top 20 features for the class ``Correct".}
+\label{fig:shap1}
+\end{figure}
+Each dot in the plot represents one instance from the test set. The plot reveals that low values (i.e, the samples highlighted in blue) of features such as \textit{``simulates the"}, \textit{``portions of"}, \textit{``desired"} , \textit{``software"}, etc for samples (low here indicating the absence of said feature) will have negative influence on model output. This indicates that these features are important for a student answer to be classified as \textit{``Correct"}. Presence of these features in any sample (highlighted in red) will not influence the classification of the answer as \textit{``Correct"} in a negative way. This is an example of a case where a human's intuition of the features that are the most important predictors towards a particular class matches closely with the explanation displayed by the summary plot. After observing the summary plots for all the questions selected as our case studies, we come to the following conclusions on the global explanation from SHAP's summary plots:
+\begin{itemize}
+\item Questions with shorter answers(i.e, where length of answers was limited to maximum of one sentence) gave the best results in terms of the top features identified matching human expectations.
+\item For questoins with longer answers and cases where there was a great amount of linguistic diversity between student answers, the features identified and/or the impacts shown on the model outputs in the plots were redundant and unconvincing. In such cases the global explanations given by the summary plots played no useful role, and great amount of effort from the user was needed to interpret the explanations.
+\end{itemize}
+Global interpretation such as the one described in the third experiment is useful in understanding and getting a sense of the magnitude and direction of influence of each feature on the prediction. Although SHAP’s strength lies in providing a globally consistent and accurate explanations by using an exhaustive approach of considering predictions for all possible coalitions for each feature, compared to LIME which is fast and where explanations are obtained instantaneously, computing the Shapley values for the features takes time in the order of 5-10 minutes. On the other hand, while LIME does not have the accuracy and consistency properties of Shapley values, LIME's output provided a more ``human friendly" explanation, and felt a more preferable choice when explaining the cause of predictions to end users.
+\subsection{Quantitative Benchmarking}
+In this section, we attempt to quantitatively evaluate and measure the level of interpretation gained from LIME's local explanations and SHAP's global explanation. However, with no clear consensus or ground truth available to compare different interpretations techniques, we developed a strategy whereby an initial qualitative assessment of the explanations was done followed by a mapping to a value within a fixed range  to get an idea of how the two interpretation techniques measure against each other in their explanations for the different cases studies. This evaluation is carried out by the experimenter with concrete procedure being as follows:
+\begin{itemize}
+\item When using LIME to get explanations for a student answer, we assign a score on a 3 point Likert scale(i.e, from 1-3) to indicate the degree to which the explanation is acceptable( 1 being the lowest, and 3 being the highest score indicating that a human user completely agrees with the explanation.
+\item In case of SHAP's global explanations from summary plots, we score the explanation based on how accurately we feel the features and their impacts have been captured in the visualization. In case of SHAP, a 3-point Likert scale range was insufficient to capture the level of interpretability, understanding and satisfaction from the explanation obtained by the user, and thus used a wider 5-point scale was used.
+\end{itemize}
+Ordinal data captured using the above method was then mapped to a single value in the range [0,1] for each question acting as the case study which served as our interpretation level for comparsion. The mapping was done as follows:
+\begin{itemize}
+\item In case of LIME, after giving an ordinal score for each instance of student answer for a question, we compute the ratio of the occurrences for each type of ordinal score.
+\item We rely on  SciPy library’s interpolation function to perform the following mappings:
+\begin{itemize}
+\item Ratios computed for ordinal value \textbf{1} is mapped from [0, 1] $=>$ [0, 0.33] range.
+\item Ratios computed for ordinal value \textbf{2} is mapped from [0, 1] $=>$ [0.34, 0.66] range.
+\item Ratios computed for ordinal value \textbf{3} is mapped from [0, 1] $=>$ [0.67, 1] range. 
+\end{itemize}
+\item The mapping obtained for the ordinal value with the largest ratio in the data for a given question is taken to be the Interpretation Level (IL) for that In case we have a situation where more than one type of ordinal score has the same maximum ratio of occurrences (for e.g ordinal scores 1 and 2 both having a ratio 6 out of a total of 15 samples), in such a case we simply take the average of those ordinal scores, and the average value that lies between 1 and 3 is mapped to [0,1] range directly. 
+\item In case of SHAP, the ordinal data was directly mapped to the [0, 1] range which corresponded to the Interpretation Level (IL) for SHAP for that question.
+\end{itemize}
+The Figure  \ref{fig:comparison1} shows the comparison of the interpretation levels for every question used as case study from the Mohler's dataset.
+\begin{figure}[H]
+\framebox{\includegraphics[width=0.48\textwidth, height=0.4\textwidth]{images/all_categ.png}}
+\caption{Quantitative Interpretation Level comparison of LIME and SHAP for different questions.}
+\label{fig:comparison1}
+\end{figure}
+As observed from the figure, in majority of the cases LIME results in either a comparable or higher interpretation level from its explanations. This stems from the reason that LIME's explanation being more human friendly and are more geared towards explaining the predictions to laypersons when compared to SHAP.
 \section{PROPOSED SOLUTION}
 
 The algorithm developed in this work was aimed with end goal of predicting and presenting student textual responses such that a human end user's understanding of the relation between the components of the current instance and the model's prediction of the score is enhanced in a way similar to the explanations given in LIME, but at the same time also attempting to address some of the limitations of LIME. LIME's restriction of indexing and highlighting only unigrams was observed to be insufficient in promoting the understanding of the human users given the diversity of student answers. Thus including words, we aim at phrases of a set length to be included  in the explanation generated by our algorithm. The second main goal that we aimed to achieve was to identify globally important features that can also be used to explain the local instance being predicted. While former research as well as the results of our prior experiments has shown that establishing globally faithful explanations that also maintains its importance in the local context is still a challenge[1], we attempt to strike a balance between the two by actively involving the human end users in the grading process.
@@ -173,7 +210,7 @@ The strategy employed by the algorithm is mentioned in the following text:
 
 \subsection{Interface Design}
 
-The architecture for the developed GUI is shown in Figure \ref{fig:arch}. The whole dataset is first extracted, parsed and converted into comma separated value (CSV) files on a per question basis directly from nbgrader metadata. Tasks such as selecting a specific question for grading, grading the initial answers, and providing feedback for the later predictions are done through the front end. The backend is responsible for preprocessing and extracting the features, learning a model, predicting and generating explanations, updating model from received feedback and finally storing and integrating the final grades and explanations into the jupyter notebooks. The GUI was designed to be hosted and deployed as a web with the micro web framework Flask was used to route requests and responses between the HTML client and the python web server.
+The architecture for the developed GUI is shown in Figure \ref{fig:arch}. The whole dataset which is input in the form of nbgrader metadata is first extracted, parsed and converted into comma separated value (CSV) files on a per question basis directly from nbgrader metadata. Tasks such as selecting a specific question for grading, grading the initial answers, and providing feedback for the later predictions are done through the front end. The backend is responsible for preprocessing and extracting the features, learning a model, predicting and generating explanations, updating model from received feedback and finally storing and integrating the final grades and explanations into the jupyter notebooks. The GUI was designed to be hosted and deployed as a web with the micro web framework Flask was used to route requests and responses between the HTML client and the python web server.
 \begin{figure}[H]
 \framebox{\includegraphics[width=0.48\textwidth, height=0.6\textwidth]{images/arch2.pdf}}
 \caption{Software Architecture of GUI}
@@ -181,7 +218,7 @@ The architecture for the developed GUI is shown in Figure \ref{fig:arch}. The wh
 \end{figure}
 
 \section{USABILITY STUDY} 
-
+Since the development of the autograding assisting system is geared towards use in examinations and in-house assignments, a user evaluation was conducted at the University of Applied Sciences Bonn-Rhein-Sieg aimed at assessing the quality of the developed grading system through interacting with real users, and thereby determining the requirements and limitations that were overlooked due to the experimenter's bias. A full-time member of the University's lecturing staff and four other research associates were asked to attempt using the software to grade a number of questions from the Mohler's dataset as part of the evaluation study. Prior to the evaluation, each user was given a brief presentation on the usage of the system. Each user was then asked to grade multiple questions from the dataset. The questions selected differed in the length of the responses required from the students. The users were asked to `think out loud' and their words and actions were video recorded. The completion of the grading of all student answers to one question was immediately accompanied by a short online questionnaire to determine whether the explanations given was useful to the users.
 \section{CONCLUSIONS}
 
 ....
