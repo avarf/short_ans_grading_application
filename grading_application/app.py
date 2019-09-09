@@ -113,6 +113,7 @@ def jupyter_to_csv(dataset_path, student_ids, exam_name_lst):
 
                         ans_source = next_cell['source']
                         ans = ''
+
                         for string in ans_source:
                             ans = ans+string
                         answers.append(ans)
@@ -357,7 +358,7 @@ def remove_duplicate_phrases(phrase_list):
     return phrase_list
 
 
-def mark_words(x_test, predicted_phrases, pred_tags, non_pred_phrases):
+def mark_words(x_test, predicted_phrases, pred_tags):
     for phrase in predicted_phrases:
         highlighted_phrase = pred_tags[0]+phrase+pred_tags[1]
         x_test = x_test.replace(phrase, highlighted_phrase)
@@ -389,19 +390,19 @@ def as_html_op(x_test, y_pred, feedback=False):
         # non_pred_phrases.append(two_phrases)
         #x_test = mark_words(x_test, zero_phrases, zero_mark_tags, non_pred_phrases, one_mark_tags, two_mark_tags)
         x_test = mark_words(x_test, zero_phrases,
-                            zero_mark_tags, one_phrases, one_mark_tags)
+                            zero_mark_tags)
 
     if y_pred == '1' or y_pred == 1:
         # non_pred_phrases.append(zero_phrases)
         # non_pred_phrases.append(two_phrases)
         #x_test = mark_words(x_test, one_phrases, one_mark_tags, non_pred_phrases, zero_mark_tags, two_mark_tags)
-        x_test = mark_words(x_test, one_phrases, one_mark_tags, None)
+        x_test = mark_words(x_test, one_phrases, one_mark_tags)
 
     if y_pred == '2' or y_pred == 2:
         # non_pred_phrases.append(zero_phrases)
         # non_pred_phrases.append(one_phrases)
         #x_test = mark_words(x_test, two_phrases, two_mark_tags, non_pred_phrases, one_mark_tags, zero_mark_tags)
-        x_test = mark_words(x_test, two_phrases, two_mark_tags, None)
+        x_test = mark_words(x_test, two_phrases, two_mark_tags)
 
     saved_expl[ans] = x_test
 
@@ -488,8 +489,6 @@ def integrate_in_jupyter(csv_file):
 
         output_path = './outputs/'+dataset_name + \
             '/'+str(student_id)+'/'+exam_name+'/'
-        if not os.path.exists(output_path):
-            os.makedirs(output_path)
 
         output_file = os.path.join(output_path, ipynb_file)
         output_file_exists = os.path.isfile(output_file)
@@ -504,18 +503,27 @@ def integrate_in_jupyter(csv_file):
             for (index, cell) in enumerate(data['cells']):
                 if 'nbgrader' in cell['metadata'] and cell['metadata']['nbgrader']['solution'] == True:
                     solution_in_cell = ''
-                    for string in cell['source']:
-                        solution_in_cell = solution_in_cell+string
+                    ans_source = cell['source']
+
+                    if type(ans_source).__name__ == 'list':
+                        for string in ans_source:
+                            solution_in_cell = solution_in_cell+string
+                    else:
+                        solution_in_cell = solution_in_cell+ans_source
+                    #for string in ans_source:
+                    #    solution_in_cell = solution_in_cell+string
                     if solution_in_cell == answer:  # also check if checksum matches if possible
                         cell['metadata']['nbgrader']['points'] = int(grade)
                         if explanation != "NA":
                             cell['source'] = explanation
                         else:
-                            cell['source'] = answer
+                            cell['source'] = solution_in_cell
                         break
-                    else:
-                        continue
+                    if pd.isnull(cell['source']) or np.isnan(cell['source']) or math.isnan(cell['source']):
+                        cell['source'] = solution_in_cell
 
+        if not os.path.exists(output_path):
+            os.makedirs(output_path)
         with open(output_file,  'w') as json_file:
             json_file.write(json.dumps(data))
     return
