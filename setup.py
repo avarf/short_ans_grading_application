@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="grading_application",
-    version="0.0.6",
+    version="0.0.8",
     author="Ravikiran Bhat",
     author_email="ravikiranbhat243@gmail.com",
     description="Short answer grading assistant with active learning support",
