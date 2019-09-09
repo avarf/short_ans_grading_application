@@ -61,9 +61,9 @@
 		{% if human_label %}
 			&emsp;&nbsp;&nbsp;&nbsp;<em><b>{{ human_label }}</b></em>
 		{% else %}
-	       		&emsp;&nbsp;&nbsp;&nbsp;<input type="radio" name="new_points" value="0">0
-	       		&emsp;&emsp;&nbsp;&nbsp;&nbsp;<input type="radio" name="new_points" value="1">1
-	       		&emsp;&emsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="radio" name="new_points" value="2">2
+	       		&emsp;&nbsp;&nbsp;&nbsp;<input type="radio"  class="form-radio" name="new_points" value="0">0
+	       		&emsp;&emsp;&nbsp;&nbsp;&nbsp;<input type="radio"  class="form-radio" name="new_points" value="1">1
+	       		&emsp;&emsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="radio"  class="form-radio" name="new_points" value="2">2
     		{% endif %}
 	       </p>
 
@@ -116,7 +116,7 @@
 	<form action="/save" method="post">
 	{% if saved == 'Saved' %}
 	   <div id="wrapper">
-	      <em><b>{{ saved }}</b></em>
+	      <em><b>Saved to Jupyter notebooks.</b></em>
 	   </div>
 	{% else %}
 	   <div id="navigate">
