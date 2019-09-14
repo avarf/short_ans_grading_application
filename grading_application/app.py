@@ -509,7 +509,9 @@ def integrate_in_jupyter(csv_file):
                         for string in ans_source:
                             solution_in_cell = solution_in_cell+string
                     else:
-                        solution_in_cell = solution_in_cell+ans_source
+                        if not pd.isnull(ans_source):
+                            solution_in_cell = solution_in_cell+str(ans_source)
+
                     #for string in ans_source:
                     #    solution_in_cell = solution_in_cell+string
                     if solution_in_cell == answer:  # also check if checksum matches if possible
@@ -519,8 +521,8 @@ def integrate_in_jupyter(csv_file):
                         else:
                             cell['source'] = solution_in_cell
                         break
-                    if pd.isnull(cell['source']) or np.isnan(cell['source']) or math.isnan(cell['source']):
-                        cell['source'] = solution_in_cell
+                    #if pd.isnull(cell['source']) or np.isnan(cell['source']) or math.isnan(cell['source']):
+                    #    cell['source'] = solution_in_cell
 
         if not os.path.exists(output_path):
             os.makedirs(output_path)
@@ -722,6 +724,8 @@ def new():
             model_ans = model_answers[ques]
         else:
             model_ans = "Model answer not provided."
+
+        ans_num = 1
         current_ans = ""
         current_ans = current_ans+stud_ans[0]
         stud_ans.remove(current_ans)
@@ -767,8 +771,6 @@ def grading():
         y_train.append(DUMMY_ANS_SCORE)
         pred, html_out = grade_and_explain(feedback)
         ans_num = ans_num+1
-        print(html_out)
-        print("\n")
         return render_template('autograde.html', html_out=html_out,
                                pred=pred,
                                feedback=feedback,
