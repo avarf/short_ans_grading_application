@@ -783,7 +783,8 @@ def grading():
                                selected=selected)
 
     if request.method == "POST":
-        ans_num = ans_num+1
+        if ans_num < total_answers
+            ans_num = ans_num+1
         return render_template('index.html', current_ans=current_ans,
                                qlist=qlist,
                                ques=ques,

@@ -50,9 +50,11 @@
     </div>
    <br/>
    <form action="/start" method="post">
-	   <div id="navigate">
-	      <button type="submit" class="next_ans">Start Grading</button>
-	   </div>
+	{% if upload_status == 'True' %}
+		<div id="navigate">
+		    <button type="submit" class="next_ans">Start Grading</button>
+		</div>
+	{% endif %}
    </form>
   </body>
 </html>
