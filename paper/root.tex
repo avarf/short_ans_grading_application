@@ -70,7 +70,7 @@ This work focuses on associating a reasoning for automated scores for short answ
 ....
 
 \section{RELATED WORK}
-....
+The methodology presented in [1] is the closest related work to our research and is also one of the most promising works in the field of model interpretation and explanations. The \textit{LIME} (Local interpretable model-agnostic explanations) method presented in this paper approximates a black-box model locally in the neighborhood of a specific prediction, i.e, it fits local, interpretable models that can explain predictions for a specific instance of \textit{any} classifier. The novelty behind LIME is that the model agnostic explanations of LIME are produced in the form of color coded features in the text that are easily understood even by human users with no underlying knowledge of the working of the model used to classify the predictions. These explanations are useful in many scenarios that require promoting trust in a prediction and is helpful in determining whether a classifier should be trusted or not. Similarly belonging to the class of model-agnnostic model interpretation methods is the SHAP (SHapley Additive exPlanations) framework presented by Lundberg et. al in [2] that leverages the concept of Shapley values explanations from cooperative game theory. The SHAP method presented in the paper assigns each feature an importance value and use them to explain predictions. Since method of computing the SHAP values involves the exhaustive approach of computing the ``average marginal contribution of a feature value over all possible coalitions"[3], it theoretically guarantees the properties of accuracy and consistency.
 
 \section{PRE-INVESTIGATIONS}
 
