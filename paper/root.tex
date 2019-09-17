@@ -33,16 +33,16 @@
 \usepackage{algpseudocode}
 
 \title{\LARGE \bf
-Application of Model Interpretability Techniques for Short Answer Grading*
+Explaining and Interpreting Model Predictions for Short Answer Grading*
 }
 
 
 \author{Ravikiran Bhat, Deebul Nair$^{1}$ and Paul G. Pl{\"o}ger$^{2}$% <-this % stops a space
 %\thanks{*This work was not supported by any organization}% <-this % stops a space
 \thanks{$^{1}$Deebul Nair is with Faculty of Computer Science,
-        University of Applied Sciences Bonn-Rhein-Sieg, Sankt Augustin, Germany
+        University of Applied Sciences Bonn-Rhein-Sieg, Sankt Augustin, Germany.
         {\tt\small deebul-sivarajan.nair@h-brs.de}}%
-\thanks{$^{2}$Bernard D. Researcheris is the Vicedean of the Department of Computer Science, Autonomous Systems, University of Applied Sciences Bonn-Rhein-Sieg, Sankt Augustin, Germany
+\thanks{$^{2}$Paul G. Pl{\"o}ger is the Vicedean of the Department of Computer Science, Autonomous Systems, University of Applied Sciences Bonn-Rhein-Sieg, Sankt Augustin, Germany.
         {\tt\small paul.ploeger@h-brs.de}}%
 }
 
@@ -66,11 +66,11 @@ This work focuses on associating a reasoning for automated scores for short answ
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{INTRODUCTION}
-
-....
+Assessment is a task that is an integral component of learning process in educational institutions and involves a human grader evaluating the results of anexamination process[8][9]. Handling situations where there are a limited numbers of graders, or a large number of students, and also to eliminate monotonic and bias errors resulting from manual assessments made it necessary to include a form of automatic scoring system to replace manual assessments that guaranteed fairness and saved teacher’s time[10]. Automated scoring systems for long answer essays and short answer type questions that require answers to be constructed in natural language form mostly work by comparing students answer to a model answer. Being efficient and cost-effective solutions, these systems produce good results in terms of consistency by reducing the imperfection resulting from fatigue, bias, or ordering effects of the human raters[11]. However since open-style questions can elicit responses from students in more than one form due to the students not having the comfort of being able to recall the exact words or phrases matching the model answers, the absence of some form of diagnostic feedback to the human raters by the automatic short answer grading (ASAG) systems as a way of justifying the given grades[4] is a drawback in current ASAG systems.\\[2mm]
+This work aims at addressing the problem of determining the applicability of model interpretation as a solution towards satisfying the requirement of generating convincing justifications for autograded answers. We also include a form of active learning throught the grading process to leverage the abilities of both the human grader and the machine, so that the process of grading of short answers is turned into a form of \textit{automated assistance} by the system to the human graders to help speed up the grading process rather than have a fully automated scoring system. The initial part of this research involves conducting preinvestigations on two state of the art model interpretation techniques and their applicability towards short answer grading. We use the insights gained from the investigations to propose our approach that uses a simple bag-of-words model in conjunction with active learning to provide automated grades with highlighted feedback to the human grader. A web GUI is developed to integrate our proposed solution, and a final survey of the tool with the teaching staff is performed to analyze the usefulness of the developed grading assistance tool and identify the requirements for out future improvements.
 
 \section{RELATED WORK}
-....
+The methodology presented in [1] is the closest related work to our research and is also one of the most promising works in the field of model interpretation and explanations. The \textit{LIME} (Local interpretable model-agnostic explanations) method presented in this paper approximates a black-box model locally in the neighborhood of a specific prediction, i.e, it fits local, interpretable models that can explain predictions for a specific instance of \textit{any} classifier. The novelty behind LIME is that the model agnostic explanations of LIME are produced in the form of color coded features in the text that are easily understood even by human users with no underlying knowledge of the working of the model used to classify the predictions. These explanations are useful in many scenarios that require promoting trust in a prediction and is helpful in determining whether a classifier should be trusted or not. Another model-agnostic algorithm introduced by the same researchers of \textit{LIME} involves the use of ``anhors" where a perturbation strategy similar to \textit{LIME} is used to generate local explantions for black box model predictions, but instead of using surrogate model as in \textit{LIME}, the explanations are expressed in the form of easily understood \textit{IF-THEN} rules called \textit{anchors}[3][4]. \\Similarly belonging to the class of model-agnnostic model interpretation methods is the SHAP (SHapley Additive exPlanations) framework presented by Lundberg et. al in [2] that leverages the concept of Shapley values explanations from cooperative game theory. The SHAP method presented in the paper assigns each feature an importance value and use them to explain predictions. Since method of computing the SHAP values involves the exhaustive approach of computing the ``average marginal contribution of a feature value over all possible coalitions"[3], it theoretically guarantees the properties of accuracy and consistency.\\Other model-agnostic methods such as counterfactual explanations are relatively more constrained in that they belong to a class of example-based explantions and they mainly work by selecting instances of the dataset to explain a model[3]. Counterfactual explanations are useful in explaining predictions of individual instances in interpretable machine learning by expressing causal situations in the form: ``If X had not occurred, Y would not have occurred". Martens et. al in [5] extends this theory to document classification where they try to explain why a document was or was not classified as a particular class. More specifically, a document D's classification is explained as a set of words E such that removing all words in E leads to the classifier producing a different classification. In addition, this explanation is minimal in the sense that removing a subset of E from the document will not change the classification.\\Layer wise relevance propagation was a notable approach introduced to interpret predictions of deep neural network architectures[6] where the basic idea invloved using hte back propagazion procedure to redistribute the output prediction score causing the classification, back to input space. A a scalar relevance value assigned for each input variable by summing over the the input dimension of weighted relevance values for each neuron indicates how much the corresponding input contributes to the overall classification decision. The tree interpreter algorithm, a concept developed by Saabas[7] is another useful algorithm, although it is specialized to interpret Random Forest predictions. The main idea here is to determine contributions of the features used for a particular prediction by tracing the decision paths of a forest and each feature's contributions is elucidated by calculating how the training set mean changes on following a prediction path.
 
 \section{PRE-INVESTIGATIONS}
 
@@ -81,18 +81,12 @@ This section describes a series of investigative experiments which are responsib
 All experiments in this section were conducted on datasets from two sources:
 \begin{enumerate}
 \item \textbf{Mohler's Dataset}\\
-The dataset consists of a set of questions taken from assignments given out for the Data Structure course at the University of North Texas \cite{mohler2011learning}. The answers were collected from a class of 31 undergraduate students via an online learning assignment. The dataset was created by working on student answers for 80 different questions and a total of 2273 answers. The answers were scored independently by two human graders on scale ranging from 0 (completely incorrect) to 5 (perfect answer). In our pre investigations, student scores above 3 were labeled as `Correct' and those graded 3 or lower were labeled as `Incorrect'. 
+The dataset consists of a set of questions taken from assignments given out for the Data Structure course at the University of North Texas[8]. The answers were collected from a class of 31 undergraduate students via an online learning assignment. The dataset was created by working on student answers for 80 different questions and a total of 2273 answers. The answers were scored independently by two human graders on scale ranging from 0 (completely incorrect) to 5 (perfect answer). In our pre investigations, student scores above 3 were labeled as `Correct' and those graded 3 or lower were labeled as `Incorrect'. 
 \item \textbf{Neural Network Dataset}\\
 This dataset consists of 17 questions administered as part of the Neural Networks course examination at the University of applied sciences Bonn-Rhein-Sieg. The answers were collected from a class of 39 students from an online examination conducted using Jupyter Notebooks. The dataset was created by using the student answers for the first 17 questions which required mandatory answers. The answers were scored on an integer scale as either 0(completely incorrect), 1 (partially correct) or 2 (perfect answer). In our pre investigations, student scores below 2 points were labelled as `Incorrect' and those with 2 points were labelled as `Correct'.
 \end{enumerate}
-A total of 14 questions selected from both datasets acted as case studies in our experiments. The questions selected included those which required answers in a few words (i.e not exceeding 4-5 words), in one or two sentences, and those where answers were longer than two to three sentences. A sub goal of the investigations in this section was to narrow down the attributes of the questions for which the applied interpretability techniques gives the best results matching human expectations.
-\subsection{Data Preprocessing}
-A separate model is learned after extracting features from the answers to each question. Before extracting features and learning a model, the answers from the two datasets are subject to preprocessing using NLP techniques:
-\begin{itemize}
-\item The model answers and student answers were tokenized into words and all words were converted into lowercase form.
-\item The segmented text obtained from the previous step was then subjected to stopword removal.
-\item Lemmatization was performed in order to obtain the base / dictionary form of a word after removing the inflectional endings in each word.
-\end{itemize}
+A total of 14 questions selected from both datasets acted as case studies in our experiments. The questions selected included those which required answers in a few words (i.e not exceeding 4-5 words), in one or two sentences, and those where answers were longer than two to three sentences. A sub goal of the investigations in this section was to narrow down the attributes of the questions for which the applied interpretability techniques gives the best results matching human expectations.\\
+A separate model is learned after extracting features from the answers to each question. Before extracting features and learning a model, the answers from the two datasets are subject to preprocessing using NLP techniques where the model answers and student answers were  invloving tokenizing the words and convertion into lowercase form, stopword removal and lemmatization to obtain the base / dictionary form of a word.
 
 \subsection{Benchmarking Experiments}
 Two experiments are conducted to check the differences in the degree of understanding gained from the explanations given by LIME and SHAP.
@@ -104,8 +98,51 @@ In this experiment, we apply Shapley value explanations as the model-agnostic in
 introduced by Lundberg et al.[2] is used to visualize a global overview of the impact of the top k features on the model output. The goal of this experiment is to analyze the global interpretation obtained from SHAP and contrast it with the locally faithful explanations generated by LIME.
 \end{enumerate}
 \subsection{Benchmarking Experiments' Results and Analysis}
-
-
+\textit{Experiment 1:}\\
+Results of experiment 1 showed that, contrary to expectations, performance in terms of the final accuracy as well as the explanations from LIME were identical for both CountVectorizer and TfidfVectorizer. Observing the predictions and explanations on unseen data, it was seen that while very few instances showed some minor differences in the highlighting of unigrams, these differences did not have any noticeable impact on the interpretation gained by the end user. Some other general observations on the LIME explanations summarized below:
+\begin{itemize}
+\item The shorter the answer length, the closer the highlighted unigrams was to human expectations. 
+\item Lower model accuracies consequently ended up affecting not only the predicted scores, but the resulting LIME highlighted explanations also tended to being more unacceptable by humans.
+\item Larger answers and higher linguistic diversity in the student responses resulted in explanations that were inconceivable due to LIME's limitations in highlighting only unigrams in the text.
+\end{itemize}
+\textit{Experiment 2:}\\
+We rely on the SHAP's summary plot to get a display of the top 20 globally important features affecting the model output for every answer in the test set to a given question. An example summary plot for the class ``Correct" showing the SHAP value for the most important features identified from among the test samples to the question: \textit{``What is the role of prototype program in problem solving?"} is shown in Figure \ref{fig:shap1} that has the following model answer in the dataset: \textit{``To simulate the behaviour of portions of desired software product"}. 
+\begin{figure}[H]
+\framebox{\includegraphics[width=0.48\textwidth, height=0.5\textwidth]{images/shap/all_features_0_nb.png}}
+\caption{An example SHAP summary plot of top 20 features for the class ``Correct".}
+\label{fig:shap1}
+\end{figure}
+Each dot in the plot represents one instance from the test set. The plot reveals that low values (i.e, the samples highlighted in blue) of features such as \textit{``simulates the"}, \textit{``portions of"}, \textit{``desired"} , \textit{``software"}, etc for samples (low here indicating the absence of said feature) will have negative influence on model output. This indicates that these features are important for a student answer to be classified as \textit{``Correct"}. Presence of these features in any sample (highlighted in red) will not influence the classification of the answer as \textit{``Correct"} in a negative way. This is an example of a case where a human's intuition of the features that are the most important predictors towards a particular class matches closely with the explanation displayed by the summary plot. After observing the summary plots for all the questions selected as our case studies, we come to the following conclusions on the global explanation from SHAP's summary plots:
+\begin{itemize}
+\item Questions with shorter answers(i.e, where length of answers was limited to maximum of one sentence) gave the best results in terms of the top features identified matching human expectations.
+\item For questoins with longer answers and cases where there was a great amount of linguistic diversity between student answers, the features identified and/or the impacts shown on the model outputs in the plots were redundant and unconvincing. In such cases the global explanations given by the summary plots played no useful role, and great amount of effort from the user was needed to interpret the explanations.
+\end{itemize}
+Global interpretation such as the one described in the third experiment is useful in understanding and getting a sense of the magnitude and direction of influence of each feature on the prediction. Although SHAP’s strength lies in providing a globally consistent and accurate explanations by using an exhaustive approach of considering predictions for all possible coalitions for each feature, compared to LIME which is fast and where explanations are obtained instantaneously, computing the Shapley values for the features takes time in the order of 5-10 minutes. On the other hand, while LIME does not have the accuracy and consistency properties of Shapley values, LIME's output provided a more ``human friendly" explanation, and felt a more preferable choice when explaining the cause of predictions to end users.
+\subsection{Quantitative Benchmarking}
+In this section, we attempt to quantitatively evaluate and measure the level of interpretation gained from LIME's local explanations and SHAP's global explanation. However, with no clear consensus or ground truth available to compare different interpretations techniques, we developed a strategy whereby an initial qualitative assessment of the explanations was done followed by a mapping to a value within a fixed range  to get an idea of how the two interpretation techniques measure against each other in their explanations for the different cases studies. This evaluation is carried out by the experimenter with concrete procedure being as follows:
+\begin{itemize}
+\item When using LIME to get explanations for a student answer, we assign a score on a 3 point Likert scale(i.e, from 1-3) to indicate the degree to which the explanation is acceptable( 1 being the lowest, and 3 being the highest score indicating that a human user completely agrees with the explanation.
+\item In case of SHAP's global explanations from summary plots, we score the explanation based on how accurately we feel the features and their impacts have been captured in the visualization. In case of SHAP, a 3-point Likert scale range was insufficient to capture the level of interpretability, understanding and satisfaction from the explanation obtained by the user, and thus used a wider 5-point scale was used.
+\end{itemize}
+Ordinal data captured using the above method was then mapped to a single value in the range [0,1] for each question acting as the case study which served as our interpretation level for comparsion. The mapping was done as follows:
+\begin{itemize}
+\item In case of LIME, after giving an ordinal score for each instance of student answer for a question, we compute the ratio of the occurrences for each type of ordinal score.
+\item We rely on  SciPy library’s interpolation function to perform the following mappings:
+\begin{itemize}
+\item Ratios computed for ordinal value \textbf{1} is mapped from [0, 1] $=>$ [0, 0.33] range.
+\item Ratios computed for ordinal value \textbf{2} is mapped from [0, 1] $=>$ [0.34, 0.66] range.
+\item Ratios computed for ordinal value \textbf{3} is mapped from [0, 1] $=>$ [0.67, 1] range. 
+\end{itemize}
+\item The mapping obtained for the ordinal value with the largest ratio in the data for a given question is taken to be the Interpretation Level (IL) for that In case we have a situation where more than one type of ordinal score has the same maximum ratio of occurrences (for e.g ordinal scores 1 and 2 both having a ratio 6 out of a total of 15 samples), in such a case we simply take the average of those ordinal scores, and the average value that lies between 1 and 3 is mapped to [0,1] range directly. 
+\item In case of SHAP, the ordinal data was directly mapped to the [0, 1] range which corresponded to the Interpretation Level (IL) for SHAP for that question.
+\end{itemize}
+The Figure \ref{fig:comparison1} shows the comparison of the interpretation levels for every question used as case study from the Mohler's dataset.
+\begin{figure}[H]
+\framebox{\includegraphics[width=0.48\textwidth, height=0.4\textwidth]{images/all_categ.png}}
+\caption{Quantitative Interpretation Level comparison of LIME and SHAP for different questions.}
+\label{fig:comparison1}
+\end{figure}
+As observed from the figure, in majority of the cases LIME results in either a comparable or higher interpretation level from its explanations. This stems from the reason that LIME's explanation being more human friendly and are more geared towards explaining the predictions to laypersons when compared to SHAP.
 \section{PROPOSED SOLUTION}
 
 The algorithm developed in this work was aimed with end goal of predicting and presenting student textual responses such that a human end user's understanding of the relation between the components of the current instance and the model's prediction of the score is enhanced in a way similar to the explanations given in LIME, but at the same time also attempting to address some of the limitations of LIME. LIME's restriction of indexing and highlighting only unigrams was observed to be insufficient in promoting the understanding of the human users given the diversity of student answers. Thus including words, we aim at phrases of a set length to be included  in the explanation generated by our algorithm. The second main goal that we aimed to achieve was to identify globally important features that can also be used to explain the local instance being predicted. While former research as well as the results of our prior experiments has shown that establishing globally faithful explanations that also maintains its importance in the local context is still a challenge[1], we attempt to strike a balance between the two by actively involving the human end users in the grading process.
@@ -167,15 +204,34 @@ The strategy employed by the algorithm is mentioned in the following text:
 
 \subsection{Interface Design}
 
-The architecture for the developed GUI is shown in Figure \ref{fig:arch}. The whole dataset is first extracted, parsed and converted into comma separated value (CSV) files on a per question basis directly from nbgrader metadata. Tasks such as selecting a specific question for grading, grading the initial answers, and providing feedback for the later predictions are done through the front end. The backend is responsible for preprocessing and extracting the features, learning a model, predicting and generating explanations, updating model from received feedback and finally storing and integrating the final grades and explanations into the jupyter notebooks. The GUI was designed to be hosted and deployed as a web with the micro web framework Flask was used to route requests and responses between the HTML client and the python web server.
+The architecture for the developed GUI is shown in Figure \ref{fig:arch}. The whole dataset which is input in the form of nbgrader metadata is first extracted, parsed and converted into comma separated value (CSV) files on a per question basis directly from nbgrader metadata. Tasks such as selecting a specific question for grading, grading the initial answers, and providing feedback for the later predictions are done through the front end. The backend is responsible for preprocessing and extracting the features, learning a model, predicting and generating explanations, updating model from received feedback and finally storing and integrating the final grades and explanations into the jupyter notebooks. The GUI was designed to be hosted and deployed as a web with the micro web framework Flask was used to route requests and responses between the HTML client and the python web server.
 \begin{figure}[H]
 \framebox{\includegraphics[width=0.48\textwidth, height=0.6\textwidth]{images/arch2.pdf}}
 \caption{Software Architecture of GUI}
 \label{fig:arch}
 \end{figure}
-
+With the goal of having a minimalist and easy to use design for the interface, the GUI frontend was set with one radio button for each possible grade. In order to assist the human users during the initial grading, a section displaying the model answer to the current answer is provided. An example snapshot of the GUI during the initial annotation of the answers is shown in Figure \ref{fig:gui2}.
+\begin{figure}[H]
+\framebox{\includegraphics[width=0.48\textwidth, height=0.3\textwidth]{images/gui2.png}}
+\caption{GUI display during the initial annotation stage.}
+\label{fig:gui2}
+\end{figure}
+After a fixed set of answers are graded by the users, the tool starts assigning grades to the remaining unseen answers. Figure \ref{fig:gui3} shows the GUI display during this stage where the features contributing to the grade are highlighted in a color specific to that grade. In our implementation, a features influencing a score of 2 points are highlighted in green, those for 1 points are highlighted in yellow and red for zero points.
+\begin{figure}[H]
+\framebox{\includegraphics[width=0.48\textwidth, height=0.3\textwidth]{images/gui3.png}}
+\caption{GUI display during the autograding and feedback stage.}
+\label{fig:gui3}
+\end{figure}
+As seen in Figure \ref{fig:gui3}, phrases upto three words and not just single words are highlighted as part of the explanation. In addition, the human user may provide feedback in case of a disagreement with the system predicted grade and explanation that helps to subsequently improve the grades and explantions for the new unseen answers.\\
+The results of the quantitative evaluation done by repeating the procedure carried out in our preinvestigations, i.e, using a Likert scale of 3 values (1,2 and 3) to score the degree of the acceptance of the displayed explanation for every answer to all questions from Mohler's dataset used as case studies, and then using the SciPy library’s interpolation function to map the maximally occurring score for a question into the ranges [0,0.33], [0.34,0.66] and [0.67,1] (for 1, 2 and 3 respectively) is shown in Figure \ref{fig:comparison2}.
+\begin{figure}[H]
+\framebox{\includegraphics[width=0.48\textwidth, height=0.34\textwidth]{images/all_categ2.png}}
+\caption{Quantitative Interpretation Level comparison of LIME, SHAP and the proposed solution for different questions.}
+\label{fig:comparison2}
+\end{figure}
+We observe that in the majority of the cases, the performance from the proposed solution in terms of the level of interpretation gained from the explanation is better than or is at least as good as that obtained from LIME and SHAP.
 \section{USABILITY STUDY} 
-
+Since the development of the autograding assisting system is geared towards use in examinations and in-house assignments, a user evaluation was conducted at the University of Applied Sciences Bonn-Rhein-Sieg aimed at assessing the quality of the developed grading system through interacting with real users, and thereby determining the requirements and limitations that were overlooked due to the experimenter's bias. A full-time member of the University's lecturing staff and four other research associates were asked to attempt using the software to grade a number of questions from the Mohler's dataset as part of the evaluation study. Prior to the evaluation, each user was given a brief presentation on the usage of the system. Each user was then asked to grade multiple questions from the dataset. The questions selected differed in the length of the responses required from the students. The users were asked to `think out loud' and their words and actions were video recorded. The completion of the grading of all student answers to one question was immediately accompanied by a short online questionnaire to determine whether the explanations given was useful to the users.
 \section{CONCLUSIONS}
 
 ....
@@ -196,9 +252,9 @@ The architecture for the developed GUI is shown in Figure \ref{fig:arch}. The wh
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section*{APPENDIX}
+%\section*{APPENDIX}
 
-....
+%....
 
 \section*{ACKNOWLEDGMENT}
 
@@ -210,6 +266,19 @@ The architecture for the developed GUI is shown in Figure \ref{fig:arch}. The wh
 
 \bibitem{c1} Marco Tulio Ribeiro, Sameer Singh, and Carlos Guestrin. ``why should I trust you?": Explaining the predictions of any classifier. In Proceedings of the 22nd ACM SIGKDD International Conference on Knowledge Discovery and Data Mining, San Francisco, CA, USA, August 13-17, 2016, pages 1135-1144, 2016.
 \bibitem{c2} Scott M Lundberg and Su-In Lee. A unified approach to interpreting model predictions. In Advances in Neural Information Processing Systems, pages 4765-4774, 2017.
+\bibitem{c3} Christoph Molnar. Interpretable Machine Learning.
+https://christophm.github.io/interpretable-ml-book/, 2018. https:
+//christophm.github.io/interpretable-ml-book/.
+\bibitem{c4} Marco Tulio Ribeiro, Sameer Singh, Carlos Guestrin. ``Anchors: High-Precision Model-Agnostic Explanations." AAAI Conference on Artificial Intelligence (AAAI), 2018
+\bibitem{c5} David Martens and Foster Provost. Explaining data-driven document classifications. 2013.
+\bibitem{c6} Daniel Gutierrez. Layer-wise Relevance Propagation Means More
+Interpretable Deep Learning. Open Data Science, 2018. URL
+https://opendatascience.com/layer-wise-relevance-propagationmeans-more-interpretable-deep-learning/.
+\bibitem{c7} Ando Saabas. Interpreting random forests. http://blog.datadive.net/interpreting-random-forests/, 2014.
+\bibitem{c8} Michael Mohler, Razvan Bunescu, and Rada Mihalcea. Learning to grade short answer questions using semantic similarity measures and dependency graph alignments. In Proceedings of the 49th Annual Meeting of the Association for Computational Linguistics: Human Language Technologies-Volume 1, pages 752-762. Association for Computational Linguistics, 2011.
+\bibitem{c9} Ahmed Ezzat Magooda, Mohamed Zahran, Mohsen Rashwan, Hazem Raafat, and Magda Fayek. Vector based techniques for short answer grading. In The Twenty-Ninth International Flairs Conference, 2016.
+\bibitem{c10} Hao-Chuan Wang, Chun-Yen Chang, and Tsai-Yen Li. Assessing creative problem-solving with automated text grading. Computers \& Education, 51(4): 1450-1466, 2008.
+\bibitem{c11} Debra T Haley, Pete Thomas, Anne De Roeck, and Marian Petre. Measuring improvement in latent semantic analysis-based marking systems: using a computer to mark questions about html. In Proceedings of the ninth Australasian conference on Computing education-Volume 66, pages 35-42. Australian Computer Society, Inc., 2007.
 \end{thebibliography}
 
 
