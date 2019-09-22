@@ -551,10 +551,12 @@ upload_status = 'False'
 model_answers = dict()
 model_ans = "Model answer not provided."
 end = None
-DEFAULT_ANS = "YOUR ANSWER HERE"
-DEFAULT_SCORE = "0"
-DUMMY_ANS = "DUMMY ANS FOR 1 P"
-DUMMY_ANS_SCORE = "1"
+DUMMY_ANS_ZERO = "YOUR ANSWER HERE"
+DUMMY_SCORE_ZERO = "0"
+DUMMY_ANS_ONE = "DUMMY ANS FOR 1 P"
+DUMMY_SCORE_ONE = "1"
+DUMMY_ANS_TWO = "DUMMY ANS FOR 2 P"
+DUMMY_SCORE_TWO = "2"
 ############################################################################
 
 
@@ -596,7 +598,8 @@ def index():
 def upload_file():
     global upload_status, dataset_name, dataset_path, exam_name
     global total_students, total_questions
-
+    total_questions = 0
+    total_students = 0
     if request.method == 'POST':
         if 'data_file' not in request.files:
             flash('No file part')
@@ -751,10 +754,7 @@ def grading():
 
     grade = request.form.get('grade', None)
     if grade is None:
-        if stud_ans[0] != "YOUR ANSWER HERE" and stud_ans[0] != "NO ANSWER PROVIDED":
-            grade = '1'
-        else:
-            grade = '0'
+        grade = '0'
     scores.append(grade)
     y_train.append(grade)
     saved_expl[current_ans] = "NA"
@@ -765,10 +765,12 @@ def grading():
         current_ans = current_ans+stud_ans[0]
         stud_ans.remove(current_ans)
     else:
-        X_train.append(DEFAULT_ANS)
-        X_train.append(DUMMY_ANS)
-        y_train.append(DEFAULT_SCORE)
-        y_train.append(DUMMY_ANS_SCORE)
+        X_train.append(DUMMY_ANS_ZERO)
+        X_train.append(DUMMY_ANS_ONE)
+        X_train.append(DUMMY_ANS_TWO)
+        y_train.append(DUMMY_SCORE_ZERO)
+        y_train.append(DUMMY_SCORE_ONE)
+        y_train.append(DUMMY_SCORE_TWO)
         pred, html_out = grade_and_explain(feedback)
         ans_num = ans_num+1
         return render_template('autograde.html', html_out=html_out,
@@ -783,7 +785,7 @@ def grading():
                                selected=selected)
 
     if request.method == "POST":
-        if ans_num < total_answers
+        if ans_num < total_answers:
             ans_num = ans_num+1
         return render_template('index.html', current_ans=current_ans,
                                qlist=qlist,
